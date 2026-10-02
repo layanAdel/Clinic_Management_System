@@ -1,0 +1,61 @@
+﻿@model Invoice
+@{
+    ViewData["Title"] = "Create Invoice";
+}
+
+<div class="container">
+    <h1>Create Invoices</h1>
+    <form asp-action="Create" method="post">
+
+        <div class="text-danger" asp-validation-summary="All">
+        </div>
+
+        <div class="form-group">
+            <label asp-for="FirstName" class="control-label"></label>
+            <input asp-for="FirstName" class="form-control" />
+            <span class="text-danger" asp-validation-for="FirstName"></span>
+        </div>
+
+        <div class="form-group">
+            <label asp-for="LastName" class="control-label"></label>
+            <input asp-for="LastName" class="form-control" />
+            <span class="text-danger" asp-validation-for="LastName"></span>
+        </div>
+
+
+        
+        <div class="form-group">
+            <label asp-for="InvoiceDate" class="control-label"></label>
+            <input asp-for="InvoiceDate" class="form-control" />
+            <span class="text-danger" asp-validation-for="InvoiceDate"></span>
+        </div>
+
+        
+        <div class="form-group">
+            <label asp-for="Amount" class="control-label"></label>
+            <input asp-for="Amount" class="form-control" />
+            <span class="text-danger" asp-validation-for="Amount"></span>
+        </div>
+
+        <div class="form-group">
+            <label asp-for="PaymentMethod" class="control-label"></label>
+            <input asp-for="PaymentMethod" class="form-control" />
+            <span class="text-danger" asp-validation-for="PaymentMethod"></span>
+        </div>
+
+        <div class="form-group">
+            <input type="submit" value="Create" class="btn btn-primary mt-3" />
+        </div>
+
+    </form>
+    <div>
+        <a asp-action="Index">Back to List</a>
+    </div>
+
+</div>
+
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}
+

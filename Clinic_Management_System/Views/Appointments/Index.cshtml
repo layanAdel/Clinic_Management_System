@@ -1,0 +1,58 @@
+﻿@model IEnumerable<Appointment>
+
+@{
+    ViewData["Title"] = "Appointments Page";
+
+}
+<div class="container">
+
+    <h1>Appointments</h1>
+
+    <div class="text-end">
+        <a asp-action="Create" class="btn btn-primary"> New Appointment</a>
+    </div>
+
+    <table class="table table-striped">
+        <thead>
+            <tr>
+                <th>Id</th>
+                <th>Patient First Name</th>
+                <th>Patient Last Name</th>
+                <th>Doctor First Name</th>
+                <th>Doctor Last Name</th>
+                <th>Appointment Date</th>
+                <th>Status</th>
+                <th>Reason</th>
+
+            </tr>
+
+        </thead>
+
+        <tbody>
+            @foreach (var appo in Model)
+            {
+                <tr>
+
+                    <td>@appo.Id</td>
+                    <td>@appo.FirstName</td>
+                    <td>@appo.LastName</td>
+                    <td>@appo.DoctorFirstName</td>
+                    <td>@appo.DoctorLastName</td>
+                    <td>@appo.AppointmentDate</td>
+                    <td>@appo.Status</td>
+                    <td>@appo.Reason</td>
+
+                    <td>
+
+                        <a asp-action="Edit"  asp-route-uuid="@appo.Uuid" class="btn btn-warning"> Edit </a>
+                        <a asp-action="Delete" asp-route-uuid="@appo.Uuid" class="btn btn-danger"> Delete </a>
+
+                    </td>
+
+                </tr>
+            }
+        </tbody>
+
+    </table>
+
+</div>

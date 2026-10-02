@@ -1,0 +1,76 @@
+﻿@model Appointment
+@{
+    ViewData["Title"] = "Create Appointment";
+}
+
+<div class="container">
+    <h1>Create Appointments</h1>
+    <form asp-action="Create" method="post">
+
+        <div class="text-danger" asp-validation-summary="All">
+        </div>
+
+        <div class="form-group">
+            <label asp-for="FirstName" class="control-label"></label>
+            <input asp-for="FirstName" class="form-control" />
+            <span class="text-danger" asp-validation-for="FirstName"></span>
+        </div>
+
+        <div class="form-group">
+            <label asp-for="LastName" class="control-label"></label>
+            <input asp-for="LastName" class="form-control" />
+            <span class="text-danger" asp-validation-for="LastName"></span>
+        </div>
+
+        
+        <div class="form-group">
+            <label asp-for="DoctorFirstName" class="control-label"></label>
+            <input asp-for="DoctorFirstName" class="form-control" />
+            <span class="text-danger" asp-validation-for="DoctorFirstName"></span>
+        </div>
+
+        
+        <div class="form-group">
+            <label asp-for="DoctorLastName" class="control-label"></label>
+            <input asp-for="DoctorLastName" class="form-control" />
+            <span class="text-danger" asp-validation-for="DoctorLastName"></span>
+        </div>
+
+        
+        <div class="form-group">
+            <label asp-for="AppointmentDate" class="control-label"></label>
+            <input asp-for="AppointmentDate" class="form-control" />
+            <span class="text-danger" asp-validation-for="AppointmentDate"></span>
+        </div>
+
+         <div class="form-group">
+            <label asp-for="Status" class="control-label"></label>
+            <input asp-for="Status" class="form-control" />
+            <span class="text-danger" asp-validation-for="Status"></span>
+        </div>
+
+          
+
+                <div class="form-group">
+            <label asp-for="Reason" class="control-label"></label>
+            <input asp-for="Reason" class="form-control" />
+            <span class="text-danger" asp-validation-for="Reason"></span>
+                </div>
+
+  
+        <div class="form-group">
+            <input type="submit" value="Create" class="btn btn-primary mt-3" />
+        </div>
+
+    </form>
+    <div>
+        <a asp-action="Index">Back to List</a>
+    </div>
+
+</div>
+
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}
+

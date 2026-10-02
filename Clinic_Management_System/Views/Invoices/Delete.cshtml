@@ -1,0 +1,49 @@
+﻿@model Invoice
+@{
+    ViewData["Title"] = "Delete Invoice";
+}
+
+
+<div class="container">
+    <h1>Delete Invoices</h1>
+    <form asp-action="Delete" method="post" asp-route-Uuid="@Model.Uuid">
+
+       
+          
+        <div class="form-group">
+            <label asp-for="FirstName" class="control-label"></label>
+            <input asp-for="FirstName" class="form-control" readonly />
+        </div>
+
+        <div class="form-group">
+            <label asp-for="LastName" class="control-label"></label>
+            <input asp-for="LastName" class="form-control" readonly />
+        </div>
+
+        
+        <div class="form-group">
+            <label asp-for="InvoiceDate" class="control-label"></label>
+            <input asp-for="InvoiceDate" class="form-control" readonly />
+        </div>
+
+        
+        <div class="form-group">
+            <label asp-for="Amount" class="control-label"></label>
+            <input asp-for="Amount" class="form-control" readonly />
+        </div>
+
+        
+        <div class="form-group">
+            <label asp-for="PaymentMethod" class="control-label"></label>
+            <input asp-for="PaymentMethod" class="form-control" readonly />
+        </div>
+
+
+        <div class="form-group">
+            <input type="submit" value="Delete" class="btn btn-danger mt-3" />
+        </div>
+    </form>
+    <div>
+        <a asp-action="Index">Back to List</a>
+    </div>
+</div>

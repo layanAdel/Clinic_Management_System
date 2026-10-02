@@ -1,0 +1,64 @@
+﻿@model Prescription
+@{
+    ViewData["Title"] = "Delete Prescription";
+}
+
+
+<div class="container">
+    <h1>Delete Prescriptions</h1>
+    <form asp-action="Delete" method="post" asp-route-Uuid="@Model.Uuid">
+
+       
+        <div class="form-group">
+            <label asp-for="FirstName" class="control-label"></label>
+            <input asp-for="FirstName" class="form-control" readonly />
+        </div>
+
+        <div class="form-group">
+            <label asp-for="LastName" class="control-label"></label>
+            <input asp-for="LastName" class="form-control" readonly />
+        </div>
+
+        
+        <div class="form-group">
+            <label asp-for="DoctorFirstName" class="control-label"></label>
+            <input asp-for="DoctorFirstName" class="form-control" readonly />
+        </div>
+
+        
+        <div class="form-group">
+            <label asp-for="DoctorLastName" class="control-label"></label>
+            <input asp-for="DoctorLastName" class="form-control" readonly />
+        </div>
+
+        
+        <div class="form-group">
+            <label asp-for="Medication" class="control-label"></label>
+            <input asp-for="Medication" class="form-control" readonly />
+        </div>
+
+        
+        <div class="form-group">
+            <label asp-for="Dosage" class="control-label"></label>
+            <input asp-for="Dosage" class="form-control" readonly />
+        </div>
+
+        <div class="form-group">
+            <label asp-for="Instructions" class="control-label"></label>
+            <input asp-for="Instructions" class="form-control" readonly />
+        </div>
+
+        <div class="form-group">
+            <label asp-for="PrescriptionDate" class="control-label"></label>
+            <input asp-for="PrescriptionDate" class="form-control" readonly />
+        </div>
+
+
+        <div class="form-group">
+            <input type="submit" value="Delete" class="btn btn-danger mt-3" />
+        </div>
+    </form>
+    <div>
+        <a asp-action="Index">Back to List</a>
+    </div>
+</div>

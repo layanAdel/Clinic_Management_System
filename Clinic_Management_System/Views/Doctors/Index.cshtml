@@ -1,0 +1,56 @@
+﻿@model IEnumerable<Doctor>
+
+ @{
+    ViewData["Title"] = "Doctors Page";
+
+} 
+
+<div class="container">  
+
+<h1>Doctors</h1>
+
+<div class="text-end">
+    <a asp-action="Create" class="btn btn-primary"> New Doctor</a>
+</div>
+
+<table class="table table-striped">
+    <thead>
+        <tr>
+                <th>Id</th>
+                <th>First Name</th>
+                <th>Last Name</th>
+                <th>Department</th>
+                <th>Specialization</th>
+                <th>Phone</th>
+                <th>Email</th>
+        </tr>
+
+    </thead>
+
+    <tbody>
+        @foreach (var doct in Model)
+            {
+                <tr>
+
+                    <td>@doct.Id</td>
+                    <td>@doct.FirstName</td>
+                    <td>@doct.LastName</td>
+                    <td>@doct.Department</td>
+                    <td>@doct.Specialization</td>
+                    <td>@doct.Phone</td>
+                    <td>@doct.Email</td>
+
+                    <td>
+
+                        <a asp-action="Edit" asp-route-uuid="@doct.Uuid" class="btn btn-warning"> Edit </a>
+                        <a asp-action="Delete" asp-route-uuid="@doct.Uuid" class="btn btn-danger"> Delete </a>
+
+                    </td>
+
+                </tr>
+            }
+        </tbody>
+
+</table>
+
+</div>

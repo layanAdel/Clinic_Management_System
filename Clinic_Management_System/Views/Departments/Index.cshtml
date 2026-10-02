@@ -1,0 +1,48 @@
+﻿@model IEnumerable<Department>
+
+    @{
+    ViewData["Title"] = "Departments Page";
+
+}
+<div class="container">
+
+    <h1>Departments</h1>
+
+    <div class="text-end">
+        <a asp-action="Create" class="btn btn-primary"> New Department</a>
+    </div>
+
+    <table class="table table-striped">
+        <thead>
+            <tr>
+                <th>Id</th>
+                <th>Name</th>
+                <th>Description</th>
+               
+            </tr>
+
+        </thead>
+
+        <tbody>
+            @foreach (var dep in Model)
+            {
+                <tr>
+
+                    <td>@dep.Id</td>
+                    <td>@dep.Name</td>
+                    <td>@dep.Description</td>
+                    
+                    <td>
+
+                        <a asp-action="Edit" asp-route-uuid="@dep.Uuid" class="btn btn-warning"> Edit </a>
+                        <a asp-action="Delete" asp-route-uuid="@dep.Uuid" class="btn btn-danger"> Delete </a>
+
+                    </td>
+
+                </tr>
+            }
+        </tbody>
+
+    </table>
+
+</div>
