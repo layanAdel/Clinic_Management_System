@@ -1,7 +1,11 @@
 ﻿using Clinic_Management_System.Data;
+using Clinic_Management_System.Dtos;
 using Clinic_Management_System.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.Rendering;
+using Microsoft.EntityFrameworkCore;
+
 
 namespace Clinic_Management_System.Controllers
 {
@@ -15,9 +19,24 @@ namespace Clinic_Management_System.Controllers
             _db = db;
         }
 
-        public ActionResult Index()
+        public async Task<IActionResult> Index()
         {
-            IEnumerable<Employee> emp = _db.Employees.ToList();
+            IEnumerable<EmployeeDto> emp = await _db.Employees
+                .Select(e => new EmployeeDto
+                {
+                    Id = e.Id,
+                    Uuid = e.Uuid,
+                    FirstName = e.FirstName,
+                    LastName = e.LastName,
+                    Position = e.Position,
+                    Phone = e.Phone,
+                    Email = e.Email,
+                    HireDate = e.HireDate,
+                    Salary = e.Salary,
+                    DepartmentName = e.Department != null ? e.Department.Name : null
+
+                }).ToListAsync();
+
             return View(emp);
         }
 
@@ -25,99 +44,156 @@ namespace Clinic_Management_System.Controllers
         // Create
 
         [HttpGet]
-        public ActionResult Create()
+        public IActionResult Create()
         {
+            var departments = _db.Departments.ToList();
+
+            SelectList selectList = new SelectList(departments, "Id", "Name");
+
+            ViewBag.Departments = selectList;
+
             return View();
         }
 
         [HttpPost]
-        public ActionResult Create(Employee employee)
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> Create(EmployeeCreateDto employeeDto)
         {
             if (ModelState.IsValid)
             {
-                _db.Employees.Add(employee);
-                _db.SaveChanges();
-                return RedirectToAction("Index");
-            }
+                var employee = new Employee
+                {
+                    FirstName = employeeDto.FirstName,
+                    LastName = employeeDto.LastName,
+                    Position = employeeDto.Position,
+                    Phone = employeeDto.Phone,
+                    Email = employeeDto.Email,
+                    HireDate = employeeDto.HireDate,
+                    Salary = employeeDto.Salary,
+                    DepartmentId = employeeDto.DepartmentId
+                };
 
-            ModelState.AddModelError("", "Please fill all the required fields.");
-            return View(employee);
+
+                _db.Add(employee);
+                await _db.SaveChangesAsync();
+                return RedirectToAction(nameof(Index));
+            }
+            ViewBag.Departments = new SelectList(
+                await _db.Departments.ToListAsync(), "Id", "Name");
+
+            return View(employeeDto);
         }
 
 
         // Edit
 
         [HttpGet]
-        public ActionResult Edit(string uuid)
+        public async Task<IActionResult> Edit(string uuid)
         {
-            var emp = _db.Employees.FirstOrDefault(x => x.Uuid == uuid);
+            if (uuid == null)
+            {
+                return NotFound();
+            }
+
+            var emp =await _db.Employees.FirstOrDefaultAsync(x => x.Uuid == uuid);
 
             if (emp == null)
             {
                 return NotFound();
             }
+            var employeeDto = new EmployeeUpdateDto
+            {
+                Id = emp.Id,
+                Uuid = emp.Uuid,
+                FirstName = emp.FirstName,
+                LastName = emp.LastName,
+                Position = emp.Position,
+                Phone = emp.Phone,
+                Email = emp.Email,
+                HireDate = emp.HireDate,
+                Salary = emp.Salary,
+                DepartmentId = emp.DepartmentId
+            };
 
-            return View(emp);
+            var departments = await _db.Departments.ToListAsync();
+            ViewBag.Departments = new SelectList(departments, "Id", "Name");
+
+            return View(employeeDto);
         }
 
         [HttpPost]
-        public ActionResult Edit(Employee employee)
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> Edit(EmployeeUpdateDto employeeDto)
         {
             if (ModelState.IsValid)
             {
-                var oldemp = _db.Employees
-                    .FirstOrDefault(x => x.Uuid == employee.Uuid);
+                var employee = await _db.Employees
+                    .FirstOrDefaultAsync(x => x.Uuid == employeeDto.Uuid);
 
-                if (oldemp == null)
+                if (employee == null)
+                {
                     return NotFound();
+                }
 
-                oldemp.FirstName = employee.FirstName;
-                oldemp.LastName = employee.LastName;
-                oldemp.Position = employee.Position;
-                oldemp.Phone = employee.Phone;
-                oldemp.Email = employee.Email;
-                oldemp.HireDate = employee.HireDate;
-                oldemp.Salary = employee.Salary;
+                employee.FirstName = employeeDto.FirstName;
+                employee.LastName = employeeDto.LastName;
+                employee.Position = employeeDto.Position;
+                employee.Phone = employeeDto.Phone;
+                employee.Email = employeeDto.Email;
+                employee.HireDate = employeeDto.HireDate;
+                employee.Salary = employeeDto.Salary;
+                employee.DepartmentId = employeeDto.DepartmentId;
 
-                _db.SaveChanges();
-                return RedirectToAction("Index");
+                await _db.SaveChangesAsync();
+
+                return RedirectToAction(nameof(Index));
             }
 
-            ModelState.AddModelError("", "Please fill all the required fields.");
-            return View(employee);
+            ViewBag.Departments = new SelectList(
+                await _db.Departments.ToListAsync(), "Id", "Name");
+
+            return View(employeeDto);
         }
+
 
 
         // Delete
 
         [HttpGet]
-        public ActionResult Delete(string uuid)
+        public async Task<IActionResult> Delete(string uuid)
         {
-            var emp = _db.Employees.FirstOrDefault(x => x.Uuid == uuid);
+            if (uuid == null)
+            {
+                return NotFound();
+            }
+            var emp =await _db.Employees.FirstOrDefaultAsync(x => x.Uuid == uuid);
+
 
             if (emp == null)
             {
                 return NotFound();
             }
-
+           
             return View(emp);
         }
 
         [HttpPost]
         [ActionName("Delete")]
-        public ActionResult DeleteConfirm(string uuid)
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> DeleteConfirm(string uuid)
         {
-            var emp = _db.Employees.FirstOrDefault(x => x.Uuid == uuid);
+            var emp = await _db.Employees.FirstOrDefaultAsync(x => x.Uuid == uuid);
 
-            if (emp == null)
+            if (emp != null)
             {
-                return NotFound();
+                _db.Employees.Remove(emp);
+                await _db.SaveChangesAsync();
             }
 
-            _db.Employees.Remove(emp);
-            _db.SaveChanges();
-
-            return RedirectToAction("Index");
+            
+            return RedirectToAction(nameof(Index));
         }
+
+       
     }
 }

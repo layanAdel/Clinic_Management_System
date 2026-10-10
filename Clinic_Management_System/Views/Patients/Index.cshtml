@@ -1,4 +1,5 @@
-﻿@model IEnumerable<Patient>
+﻿@using Clinic_Management_System.Dtos
+@model IEnumerable<PatientDto>
 
  @{
     ViewData["Title"] = "Patients Page";
@@ -22,6 +23,11 @@
                 <th>Gender</th>
                 <th>Phone</th>
                 <th>Email</th>
+                <th>Count of Appoinment</th>
+                <th>Count of Medical Record</th>
+                <th>Count of Prescription</th>
+                <th>Count of Invoices</th>
+                <th></th>
               
             </tr>
         </thead>
@@ -37,6 +43,10 @@
                     <td>@pat.Gender</td>
                     <td>@pat.Phone</td>
                     <td>@pat.Email</td>
+                    <td>@pat.AppointmentId</td>
+                    <td>@pat.MedicalRecordId</td>
+                    <td>@pat.PrescriptionId</td>
+                    <td>@pat.InvoiceId</td>
                    
                     <td>
                         <a asp-action="Edit"  asp-route-uuid="@pat.Uuid" class="btn btn-warning"> Edit  </a>

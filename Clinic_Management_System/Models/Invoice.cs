@@ -11,14 +11,9 @@ namespace Clinic_Management_System.Models
         public int Id { get; set; }
         public string Uuid { get; set; } = Guid.NewGuid().ToString();
 
+        public int PatientId { get; set; }
 
-        [DisplayName("Patient First Name")]
-        [Required(ErrorMessage = "Name is required")]
-        public string FirstName { get; set; }
-
-        [DisplayName("Patient Last Name")]
-        [Required(ErrorMessage = "Name is required")]
-        public string LastName { get; set; }
+        public Patient? Patient { get; set; }
 
         [DisplayName("Invoice Date")]
         [Required(ErrorMessage = "Invoice Date is required")]

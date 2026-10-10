@@ -1,4 +1,5 @@
-﻿@model IEnumerable<Invoice>
+﻿@using Clinic_Management_System.Dtos
+@model IEnumerable<InvoiceDto>
 
  @{
     ViewData["Title"] = "Invoices Page";
@@ -16,11 +17,12 @@
         <thead>
             <tr>
                 <th>Id</th>
-                <th>Patient First Name</th>
-                <th>Patient Last Name</th>
+                <th>Patient Name</th>
                 <th>Invoice Date</th>
                 <th>Amount</th>
                 <th>Payment Method</th>
+                <th></th>
+
             </tr>
         </thead>
         <tbody>
@@ -29,8 +31,7 @@
 
                 <tr>
                     <td>@inv.Id</td>
-                    <td>@inv.FirstName</td>
-                    <td>@inv.LastName</td>
+                    <td>@inv.PatientName</td>
                     <td>@inv.InvoiceDate</td>
                     <td>@inv.Amount</td>
                     <td>@inv.PaymentMethod</td>

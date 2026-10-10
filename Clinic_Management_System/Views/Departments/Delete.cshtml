@@ -1,4 +1,4 @@
-﻿@model Department
+﻿@model Clinic_Management_System.Models.Department
 @{
     ViewData["Title"] = "Delete Department";
 }
@@ -22,6 +22,7 @@
 
 
         <div class="form-group">
+            <input type="hidden" asp-for="Uuid" />
             <input type="submit" value="Delete" class="btn btn-danger mt-3" />
         </div>
     </form>

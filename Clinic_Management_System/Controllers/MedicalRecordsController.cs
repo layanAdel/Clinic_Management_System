@@ -1,7 +1,10 @@
 ﻿using Clinic_Management_System.Data;
+using Clinic_Management_System.Dtos;
 using Clinic_Management_System.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.Rendering;
+using Microsoft.EntityFrameworkCore;
 
 namespace Clinic_Management_System.Controllers
 {
@@ -15,82 +18,155 @@ namespace Clinic_Management_System.Controllers
             _db = db;
         }
 
-        public ActionResult Index()
+
+
+        public async Task<IActionResult> Index()
         {
-            IEnumerable<MedicalRecord> med = _db.MedicalRecords.ToList();
+            IEnumerable<MedicalRecordDto> med = await _db.MedicalRecords.Select(a => new MedicalRecordDto
+            {
+                Id = a.Id,
+                Uuid = a.Uuid,
+                PatientName = a.Patient != null ? a.Patient.FirstName : null,
+                DoctorName = a.Doctor != null ? a.Doctor.FirstName : null,
+                VisitDate = a.VisitDate,
+                Diagnosis = a.Diagnosis,
+                Notes = a.Notes
+            }).ToListAsync();
+
             return View(med);
         }
 
 
         // Create
         [HttpGet]
-        public ActionResult Create()
+        public IActionResult Create()
         {
+            var patients = _db.Patients.ToList();
+
+            SelectList selectList = new SelectList(patients, "Id", "FirstName");
+            ViewBag.Patients = selectList;
+
+            var doctors = _db.Doctors.ToList();
+
+            SelectList selectListD = new SelectList(doctors, "Id", "FirstName");
+
+            ViewBag.Doctors = selectListD;
+
             return View();
         }
 
         [HttpPost]
-        public ActionResult Create(MedicalRecord medicalRecord)
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> Create(MedicalRecordCreateDto medicalRecordDto)
         {
             if (ModelState.IsValid)
             {
+                var medicalRecord = new MedicalRecord
+                {
+                    PatientId = medicalRecordDto.PatientId,
+                    DoctorId = medicalRecordDto.DoctorId,
+                    VisitDate = medicalRecordDto.VisitDate,
+                    Diagnosis = medicalRecordDto.Diagnosis,
+                    Notes = medicalRecordDto.Notes,
+                };
+
                 _db.MedicalRecords.Add(medicalRecord);
-                _db.SaveChanges();
-                return RedirectToAction("Index");
+                await _db.SaveChangesAsync();
+                return RedirectToAction(nameof(Index));
             }
 
-            ModelState.AddModelError("", "Please fill all the required fields.");
-            return View(medicalRecord);
+            ViewBag.Patients = new SelectList( 
+                await _db.Patients.ToListAsync(), "Id", "FirstName");
+
+            ViewBag.Doctors = new SelectList(
+              await _db.Doctors.ToListAsync(), "Id", "FirstName");
+            
+            return View(medicalRecordDto);
         }
 
 
         // Edit
         [HttpGet]
-        public ActionResult Edit(string uuid)
+        public async Task<IActionResult> Edit(string uuid)
         {
-            var med = _db.MedicalRecords.FirstOrDefault(x => x.Uuid == uuid);
+            if (uuid == null)
+            {
+                return NotFound();
+            }
+            var med =await _db.MedicalRecords.FirstOrDefaultAsync(x => x.Uuid == uuid);
 
             if (med == null)
             {
                 return NotFound();
             }
 
-            return View(med);
+            var medicalRecordDto = new MedicalRecordUpdateDto
+            {
+                Id = med.Id,
+                Uuid = med.Uuid,
+                PatientId = med.PatientId,
+                DoctorId = med.DoctorId,
+                VisitDate = med.VisitDate,
+                Diagnosis = med.Diagnosis,
+                Notes = med.Notes,
+            };
+
+            var Patients = await _db.Patients.ToListAsync();
+            ViewBag.Patients = new SelectList(Patients, "Id", "FirstName");
+
+
+            var Doctors = await _db.Doctors.ToListAsync();
+            ViewBag.Doctors = new SelectList(Doctors, "Id", "FirstName");
+
+            return View(medicalRecordDto);
         }
 
         [HttpPost]
-        public ActionResult Edit(MedicalRecord medicalRecord)
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> Edit(MedicalRecordUpdateDto medicalRecordDto)
         {
             if (ModelState.IsValid)
             {
-                var oldmed = _db.MedicalRecords
-                    .FirstOrDefault(x => x.Uuid == medicalRecord.Uuid);
+                var medicalRecord = await _db.MedicalRecords
+                    .FirstOrDefaultAsync(x => x.Uuid == medicalRecordDto.Uuid);
 
-                if (oldmed == null)
+                if (medicalRecord == null)
+                {
                     return NotFound();
+                }
 
-                oldmed.FirstName = medicalRecord.FirstName;
-                oldmed.LastName = medicalRecord.LastName;
-                oldmed.DoctorFirstName = medicalRecord.DoctorFirstName;
-                oldmed.DoctorLastName = medicalRecord.DoctorLastName;
-                oldmed.VisitDate = medicalRecord.VisitDate;
-                oldmed.Diagnosis = medicalRecord.Diagnosis;
-                oldmed.Notes = medicalRecord.Notes;
+                medicalRecord.PatientId = medicalRecordDto.PatientId;
+                medicalRecord.DoctorId = medicalRecordDto.DoctorId;
+                medicalRecord.VisitDate = medicalRecordDto.VisitDate;
+                medicalRecord.Diagnosis = medicalRecordDto.Diagnosis;
+                medicalRecord.Notes = medicalRecordDto.Notes;
 
-                _db.SaveChanges();
-                return RedirectToAction("Index");
+                await _db.SaveChangesAsync();
+
+                return RedirectToAction(nameof(Index));
             }
 
-            ModelState.AddModelError("", "Please fill all the required fields.");
-            return View(medicalRecord);
+            ViewBag.Patients = new SelectList(
+                await _db.Patients.ToListAsync(), "Id", "FirstName");
+
+            ViewBag.Doctors = new SelectList(
+                await _db.Doctors.ToListAsync(), "Id", "FirstName");
+
+            return View(medicalRecordDto);
         }
 
 
         // Delete
         [HttpGet]
-        public ActionResult Delete(string uuid)
+        public async Task<IActionResult> Delete(string uuid)
         {
-            var med = _db.MedicalRecords.FirstOrDefault(x => x.Uuid == uuid);
+
+            if (uuid == null)
+            {
+                return NotFound();
+            }
+
+            var med =await _db.MedicalRecords.FirstOrDefaultAsync(x => x.Uuid == uuid);
 
             if (med == null)
             {
@@ -102,19 +178,20 @@ namespace Clinic_Management_System.Controllers
 
         [HttpPost]
         [ActionName("Delete")]
-        public ActionResult DeleteConfirm(string uuid)
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> DeleteConfirm(string uuid)
         {
-            var med = _db.MedicalRecords.FirstOrDefault(x => x.Uuid == uuid);
+            var med = await _db.MedicalRecords.FirstOrDefaultAsync(x => x.Uuid == uuid);
 
-            if (med == null)
+            if (med != null)
             {
-                return NotFound();
+                _db.MedicalRecords.Remove(med);
+                await _db.SaveChangesAsync();
             }
 
-            _db.MedicalRecords.Remove(med);
-            _db.SaveChanges();
-
-            return RedirectToAction("Index");
+            return RedirectToAction(nameof(Index));
         }
+      
+
     }
 }

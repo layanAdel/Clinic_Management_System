@@ -1,4 +1,5 @@
-﻿@model MedicalRecord
+﻿@using Clinic_Management_System.Dtos
+@model MedicalRecordUpdateDto
 @{
     ViewData["Title"] = "Edit MedicalRecord";
 
@@ -7,35 +8,32 @@
 <div class="container">
     <h1>Edit MedicalRecords</h1>
     <form asp-action="Edit" method="post" asp-route-Uuid="@Model.Uuid">
+        <input type="hidden" asp-for="Uuid" />
 
         <div class="text-danger" asp-validation-summary="All">
         </div>
 
         
         <div class="form-group">
-            <label asp-for="FirstName" class="control-label"></label>
-            <input asp-for="FirstName" class="form-control" />
-            <span class="text-danger" asp-validation-for="FirstName"></span>
+            <label asp-for="PatientId" class="control-label"></label>
+
+            <select asp-for="PatientId" class="form-control" asp-items="ViewBag.Patients">
+                <option value="">-- Select Patients --</option>
+            </select>
+
+            <span asp-validation-for="PatientId" class="text-danger"></span>
         </div>
 
-        <div class="form-group">
-            <label asp-for="LastName" class="control-label"></label>
-            <input asp-for="LastName" class="form-control" />
-            <span class="text-danger" asp-validation-for="LastName"></span>
-        </div>
-
-        
-        <div class="form-group">
-            <label asp-for="DoctorFirstName" class="control-label"></label>
-            <input asp-for="DoctorFirstName" class="form-control" />
-            <span class="text-danger" asp-validation-for="DoctorFirstName"></span>
-        </div>
 
         
         <div class="form-group">
-            <label asp-for="DoctorLastName" class="control-label"></label>
-            <input asp-for="DoctorLastName" class="form-control" />
-            <span class="text-danger" asp-validation-for="DoctorLastName"></span>
+            <label asp-for="DoctorId" class="control-label"></label>
+
+            <select asp-for="DoctorId" class="form-control" asp-items="ViewBag.Doctors">
+                <option value="">-- Select Doctor --</option>
+            </select>
+
+            <span asp-validation-for="DoctorId" class="text-danger"></span>
         </div>
 
         
@@ -73,5 +71,7 @@
 
 
 @section Scripts {
-    <partial name="_ValidationScriptsPartial" />
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
 }

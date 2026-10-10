@@ -33,5 +33,9 @@ namespace Clinic_Management_System.Models
 
         [Required(ErrorMessage = "Salary is required")]
         public decimal Salary { get; set; } = 0;
+
+        public int DepartmentId { get; set; }
+
+        public Department? Department { get; set; }
     }
 }

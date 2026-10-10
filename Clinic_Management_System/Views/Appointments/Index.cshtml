@@ -1,4 +1,5 @@
-﻿@model IEnumerable<Appointment>
+﻿@using Clinic_Management_System.Dtos
+@model IEnumerable<AppointmentDto>
 
 @{
     ViewData["Title"] = "Appointments Page";
@@ -23,6 +24,7 @@
                 <th>Appointment Date</th>
                 <th>Status</th>
                 <th>Reason</th>
+                <th></th>
 
             </tr>
 
@@ -34,10 +36,8 @@
                 <tr>
 
                     <td>@appo.Id</td>
-                    <td>@appo.FirstName</td>
-                    <td>@appo.LastName</td>
-                    <td>@appo.DoctorFirstName</td>
-                    <td>@appo.DoctorLastName</td>
+                    <td>@appo.PatientName</td>
+                    <td>@appo.DoctorName</td> 
                     <td>@appo.AppointmentDate</td>
                     <td>@appo.Status</td>
                     <td>@appo.Reason</td>

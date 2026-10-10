@@ -17,5 +17,8 @@ namespace Clinic_Management_System.Models
         public string Name { get; set; }
 
         public string Description { get; set; }
+        public ICollection<Doctor>? Doctors { get; set; }
+
+        public ICollection<Employee>? Employees { get; set; }
     }
 }

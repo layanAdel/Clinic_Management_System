@@ -1,7 +1,10 @@
 ﻿using Clinic_Management_System.Data;
+using Clinic_Management_System.Dtos;
 using Clinic_Management_System.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.Rendering;
+using Microsoft.EntityFrameworkCore;
 using System.Collections;
 
 namespace Clinic_Management_System.Controllers
@@ -16,80 +19,135 @@ namespace Clinic_Management_System.Controllers
             _db = db;
         }
 
-        public ActionResult Index()
+        public async Task<IActionResult> Index()
         {
-            IEnumerable<Invoice> inv = _db.Invoices.ToList();
+            IEnumerable<InvoiceDto> inv = await _db.Invoices.Select(i => new InvoiceDto
+                {
+                    Id = i.Id,
+                    Uuid = i.Uuid,
+                    PatientName = i.Patient != null ? i.Patient.FirstName : null,
+                    InvoiceDate = i.InvoiceDate,
+                    Amount = i.Amount,
+                    PaymentMethod = i.PaymentMethod
+
+                }).ToListAsync();
+
             return View(inv);
         }
 
 
         // Create
         [HttpGet]
-        public ActionResult Create()
+        public IActionResult Create()
         {
+            var patients = _db.Patients.ToList();
+
+            SelectList selectList = new SelectList(patients, "Id", "FirstName");
+            ViewBag.Patients = selectList;
             return View();
         }
 
         [HttpPost]
-        public ActionResult Create(Invoice invoice)
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> Create(InvoiceCreateDto invoiceDto)
         {
             if (ModelState.IsValid)
             {
+
+                var invoice = new Invoice
+                {
+                    PatientId = invoiceDto.PatientId,
+                    InvoiceDate = invoiceDto.InvoiceDate,
+                    Amount = invoiceDto.Amount,
+                    PaymentMethod = invoiceDto.PaymentMethod
+                };
+
                 _db.Invoices.Add(invoice);
-                _db.SaveChanges();
-                return RedirectToAction("Index");
+                await _db.SaveChangesAsync();
+                return RedirectToAction(nameof(Index));
             }
 
-            ModelState.AddModelError("", "Please fill all the required fields ");
-            return View(invoice);
+
+            ViewBag.Patients = new SelectList(
+                await _db.Patients.ToListAsync(), "Id", "FirstName");
+
+            return View(invoiceDto);
         }
 
 
         // Edit
         [HttpGet]
-        public ActionResult Edit(string uuid)
+        public async Task<IActionResult> Edit(string uuid)
         {
-            var inv = _db.Invoices.FirstOrDefault(x => x.Uuid == uuid);
+            if (uuid == null)
+            {
+                return NotFound();
+            }
+
+            var inv = await _db.Invoices.FirstOrDefaultAsync(x => x.Uuid == uuid);
 
             if (inv == null)
             {
                 return NotFound();
             }
 
-            return View(inv);
+            var invoiceDto = new InvoiceUpdateDto
+            {
+                Id = inv.Id,
+                Uuid = inv.Uuid,
+                PatientId = inv.PatientId,
+                InvoiceDate = inv.InvoiceDate,
+                Amount = inv.Amount,
+                PaymentMethod = inv.PaymentMethod
+            };
+
+            var Patients = await _db.Patients.ToListAsync();
+            ViewBag.Patients = new SelectList(Patients, "Id", "FirstName");
+
+            return View(invoiceDto);
         }
 
         [HttpPost]
-        public ActionResult Edit(Invoice invoice)
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> Edit(InvoiceUpdateDto invoiceDto)
         {
             if (ModelState.IsValid)
             {
-                var oldinv = _db.Invoices
-                    .FirstOrDefault(x => x.Uuid == invoice.Uuid);
+                var invoice = await _db.Invoices
+                    .FirstOrDefaultAsync(x => x.Uuid == invoiceDto.Uuid);
 
-                if (oldinv == null)
+                if (invoice == null)
+                {
                     return NotFound();
+                }
 
-                oldinv.FirstName = invoice.FirstName;
-                oldinv.LastName = invoice.LastName;
-                oldinv.InvoiceDate = invoice.InvoiceDate;
-                oldinv.Amount = invoice.Amount;
-                oldinv.PaymentMethod = invoice.PaymentMethod;
+                invoice.PatientId = invoiceDto.PatientId;
+                invoice.InvoiceDate = invoiceDto.InvoiceDate;
+                invoice.Amount = invoiceDto.Amount;
+                invoice.PaymentMethod = invoiceDto.PaymentMethod;
 
-                _db.SaveChanges();
-                return RedirectToAction("Index");
+                await _db.SaveChangesAsync();
+
+                return RedirectToAction(nameof(Index));
             }
 
-            ModelState.AddModelError("", "Please fill all the required fields.");
-            return View(invoice);
+            ViewBag.Patients = new SelectList(
+                await _db.Patients.ToListAsync(), "Id", "FirstName");
+
+            return View(invoiceDto);
         }
 
 
         // Delete
         [HttpGet]
-        public ActionResult Delete(string uuid)
+        public async Task<IActionResult> Delete(string uuid)
         {
-            var inv = _db.Invoices.FirstOrDefault(x => x.Uuid == uuid);
+            if (uuid == null)
+            {
+                return NotFound();
+            }
+
+            var inv = await _db.Invoices.FirstOrDefaultAsync(x => x.Uuid == uuid);
 
             if (inv == null)
             {
@@ -101,19 +159,24 @@ namespace Clinic_Management_System.Controllers
 
         [HttpPost]
         [ActionName("Delete")]
-        public ActionResult DeleteConfirm(string uuid)
-        {
-            var inv = _db.Invoices.FirstOrDefault(x => x.Uuid == uuid);
+        [ValidateAntiForgeryToken]
 
-            if (inv == null)
+        public async Task<IActionResult> DeleteConfirm(string uuid)
+        {
+            var inv = await _db.Invoices.FirstOrDefaultAsync(x => x.Uuid == uuid);
+
+            if (inv != null)
             {
-                return NotFound();
+                _db.Invoices.Remove(inv);
+                await _db.SaveChangesAsync();
+
             }
 
-            _db.Invoices.Remove(inv);
-            _db.SaveChanges();
-
-            return RedirectToAction("Index");
+            return RedirectToAction(nameof(Index));
         }
+
+
+       
+
     }
 }

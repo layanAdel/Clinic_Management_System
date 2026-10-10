@@ -1,7 +1,9 @@
 ﻿using Clinic_Management_System.Data;
+using Clinic_Management_System.Dtos;
 using Clinic_Management_System.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 
 namespace Clinic_Management_System.Controllers
 {
@@ -16,106 +18,159 @@ namespace Clinic_Management_System.Controllers
         }
 
 
-        public ActionResult Index()
+        public async Task<IActionResult> Index()
         {
-            IEnumerable<Patient> pat = _db.Patients.ToList();
-            return View(pat);
+            IEnumerable<PatientDto> patients = await _db.Patients
+               .Select(p => new PatientDto
+               {
+                   Id = p.Id,
+                   Uuid = p.Uuid,
+                   FirstName = p.FirstName,
+                   LastName = p.LastName,
+                   BirthDate = p.BirthDate,
+                   Gender = p.Gender,
+                   Phone = p.Phone,
+                   Email = p.Email,
+                   AppointmentId = p.Appointments.Count(),
+                   MedicalRecordId = p.MedicalRecords.Count(),
+                   PrescriptionId = p.Prescriptions.Count(),
+                   InvoiceId = p.Invoices.Count()
+
+               }).ToListAsync();
+
+            return View(patients);
         }
+        
 
 
         // Create
         [HttpGet]
-        public ActionResult Create()
+        public IActionResult Create()
         {
             return View();
         }
 
         [HttpPost]
-        public ActionResult Create(Patient patient)
+        [ValidateAntiForgeryToken]
+
+        public async Task<IActionResult> Create(PatientCreateDto patientDto)
         {
+
             if (ModelState.IsValid)
             {
+                var patient = new Patient
+                {
+                    FirstName = patientDto.FirstName,
+                    LastName = patientDto.LastName,
+                    BirthDate = patientDto.BirthDate,
+                    Gender = patientDto.Gender,
+                    Phone = patientDto.Phone,
+                    Email = patientDto.Email
+                };
                 _db.Patients.Add(patient);
-                _db.SaveChanges();
-                return RedirectToAction("Index");
+               await _db.SaveChangesAsync();
+                return RedirectToAction(nameof(Index));
             }
-
-            ModelState.AddModelError("", "Please fill all the required fields.");
-            return View(patient);
+            return View(patientDto);
         }
 
 
         // Edit
         [HttpGet]
-        public ActionResult Edit(string uuid)
+        public async Task<IActionResult> Edit(string uuid)
         {
-            var pat = _db.Patients.FirstOrDefault(x => x.Uuid == uuid);
-
-            if (pat == null)
+            if (uuid == null)
             {
                 return NotFound();
             }
 
-            return View(pat);
+            var patient = await _db.Patients.FirstOrDefaultAsync(x => x.Uuid == uuid);
+
+            if (patient == null)
+            {
+                return NotFound();
+            }
+            var patientDto = new PatientUpdateDto
+            {
+                Id = patient.Id,
+                Uuid = patient.Uuid,
+                FirstName = patient.FirstName,
+                LastName = patient.LastName,
+                BirthDate = patient.BirthDate,
+                Gender = patient.Gender,
+                Phone = patient.Phone,
+                Email = patient.Email
+            };
+
+            return View(patientDto);
         }
 
         [HttpPost]
-        public ActionResult Edit(Patient patient)
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> Edit(PatientUpdateDto patientDto)
         {
             if (ModelState.IsValid)
             {
-                var oldpat = _db.Patients
-      .FirstOrDefault(x => x.Uuid == patient.Uuid);
+                var patient = await _db.Patients
+                    .FirstOrDefaultAsync(x => x.Uuid == patientDto.Uuid);
 
-                if (oldpat == null)
+                if (patient == null)
+                {
                     return NotFound();
+                }
 
-                oldpat.FirstName = patient.FirstName;
-                oldpat.LastName = patient.LastName;
-                oldpat.BirthDate = patient.BirthDate;
-                oldpat.Gender = patient.Gender;
-                oldpat.Phone = patient.Phone;
-                oldpat.Email = patient.Email;
+                patient.FirstName = patientDto.FirstName;
+                patient.LastName = patientDto.LastName;
+                patient.BirthDate = patientDto.BirthDate;
+                patient.Gender = patientDto.Gender;
+                patient.Phone = patientDto.Phone;
+                patient.Email = patientDto.Email;
 
-                _db.SaveChanges();
+                await _db.SaveChangesAsync();
 
-                return RedirectToAction("Index");
+                return RedirectToAction(nameof(Index));
             }
 
-            ModelState.AddModelError("", "Please fill all the required fields.");
-            return View(patient);
+            return View(patientDto);
         }
+
 
 
         // Delete
         [HttpGet]
-        public ActionResult Delete(string uuid)
+        public async Task<IActionResult> Delete(string uuid)
         {
-            var pat = _db.Patients.FirstOrDefault(x => x.Uuid == uuid);
+            if (uuid == null)
+            {
+                return NotFound();
+            }
+            var patient = await _db.Patients.FirstOrDefaultAsync(x => x.Uuid == uuid);
 
-            if (pat == null)
+            if (patient == null)
             {
                 return NotFound();
             }
 
-            return View(pat);
+            return View(patient);
         }
 
         [HttpPost]
         [ActionName("Delete")]
-        public ActionResult DeleteConfirm(string uuid)
-        {
-            var pat = _db.Patients.FirstOrDefault(x => x.Uuid == uuid);
+        [ValidateAntiForgeryToken]
 
-            if (pat == null)
+        public async Task<IActionResult> DeleteConfirm(string uuid)
+        {
+            var patient =await _db.Patients.FirstOrDefaultAsync(x => x.Uuid == uuid);
+
+            if (patient != null)
             {
-                return NotFound();
+                _db.Patients.Remove(patient);
+                await _db.SaveChangesAsync();
             }
 
-            _db.Patients.Remove(pat);
-            _db.SaveChanges();
+           
 
-            return RedirectToAction("Index");
+            return RedirectToAction(nameof(Index));
         }
     }
 }

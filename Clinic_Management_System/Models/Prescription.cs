@@ -1,6 +1,7 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using System.ComponentModel;
 using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace Clinic_Management_System.Models
 {
@@ -10,22 +11,14 @@ namespace Clinic_Management_System.Models
         public int Id { get; set; }
         public string Uuid { get; set; } = Guid.NewGuid().ToString();
 
+        public int PatientId { get; set; }
 
-        [DisplayName("Patient First Name")]
-        [Required(ErrorMessage = "Name is required")]
-        public string FirstName { get; set; }
+        public Patient? Patient { get; set; }
 
-        [DisplayName("Patient Last Name")]
-        [Required(ErrorMessage = "Name is required")]
-        public string LastName { get; set; }
 
-        [DisplayName("Doctor First Name")]
-        [Required(ErrorMessage = "Name is required")]
-        public string DoctorFirstName { get; set; }
+        public int DoctorId { get; set; }
 
-        [DisplayName("Doctor Last Name")]
-        [Required(ErrorMessage = "Name is required")]
-        public string DoctorLastName { get; set; }
+        public Doctor? Doctor { get; set; }
 
         [Required(ErrorMessage = "Medication is required")]
         public string Medication { get; set; }

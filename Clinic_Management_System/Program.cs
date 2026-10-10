@@ -1,4 +1,6 @@
+using Clinic_Management_System.Controllers;
 using Clinic_Management_System.Data;
+using Clinic_Management_System.Repositories;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.EntityFrameworkCore;
 
@@ -20,6 +22,11 @@ builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationSc
         options.LoginPath = "/Accounts/Login";
         options.AccessDeniedPath = "/Accounts/AccessDenied";
     });
+
+builder.Services.AddScoped<IDepartmentRepository, DepartmentRepository>();
+builder.Services.AddScoped<IDoctorRepository, DoctorRepository>();
+
+
 
 
 var app = builder.Build();

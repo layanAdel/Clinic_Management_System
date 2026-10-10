@@ -1,4 +1,4 @@
-﻿@model Patient
+﻿@model Clinic_Management_System.Models.Patient
 @{
     ViewData["Title"] = "Delete Patient";
 }
@@ -22,26 +22,28 @@
 
         <div class="form-group">
             <label asp-for="BirthDate" class="control-label"></label>
-            <input asp-for="BirthDate" class="form-control" readonly></input>
+            <input asp-for="BirthDate" class="form-control" readonly>
         </div>
 
         <div class="form-group">
             <label asp-for="Gender" class="control-label"></label>
-            <input asp-for="Gender" class="form-control" readonly></input>
+            <input asp-for="Gender" class="form-control" readonly>
         </div>
 
         <div class="form-group">
             <label asp-for="Phone" class="control-label"></label>
-            <input asp-for="Phone" class="form-control" readonly></input>
+            <input asp-for="Phone" class="form-control" readonly>
         </div>
 
         <div class="form-group">
             <label asp-for="Email" class="control-label"></label>
-            <input asp-for="Email" class="form-control" readonly></input>
+            <input asp-for="Email" class="form-control" readonly>
         </div>
 
        
         <div class="form-group">
+            <input type="hidden" asp-for="Uuid" />
+
             <input type="submit" value="Delete" class="btn btn-danger mt-3" />
         </div>
     </form>

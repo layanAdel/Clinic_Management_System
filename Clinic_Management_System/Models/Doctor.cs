@@ -19,9 +19,6 @@ namespace Clinic_Management_System.Models
         [Required(ErrorMessage = "Name is required")]
         public string LastName { get; set; }
 
-        [Required(ErrorMessage = "Department is required")]
-        public string Department { get; set; }
-
         [Required(ErrorMessage = "Specialization is required")]
         public string Specialization { get; set; }
 
@@ -30,5 +27,15 @@ namespace Clinic_Management_System.Models
 
         [Required(ErrorMessage = "Email is required")]
         public string Email { get; set; }
+
+        public int DepartmentId { get; set; }
+
+        public Department? Department { get; set; }
+
+        public ICollection<Appointment>? Appointments { get; set; }
+
+        public ICollection<MedicalRecord>? MedicalRecords { get; set; }
+
+        public ICollection<Prescription>? Prescriptions { get; set; }
     }
 }

@@ -1,118 +1,175 @@
 ﻿using Clinic_Management_System.Data;
+using Clinic_Management_System.Dtos;
 using Clinic_Management_System.Models;
+using Clinic_Management_System.Repositories;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 
 namespace Clinic_Management_System.Controllers
 {
     [Authorize]
     public class DepartmentsController : Controller
     {
-        private readonly AppDbContext _db;
+        //private readonly AppDbContext _db;
 
-        public DepartmentsController(AppDbContext db)
+        //public DepartmentsController(AppDbContext db)
+        //{
+        //    _db = db;
+        //}
+        private readonly IDepartmentRepository _departmentRepository;
+        public DepartmentsController(IDepartmentRepository departmentRepository)
         {
-            _db = db;
+            _departmentRepository = departmentRepository;
         }
 
-        public ActionResult Index()
+
+        public async Task<IActionResult> Index()
         {
-            IEnumerable<Department> dep = _db.Departments.ToList();
-            return View(dep);
+            var departments = await _departmentRepository.GetAllDepartmentsAsync();
+
+            IEnumerable<DepartmentDto> department = departments
+                .Select(d => new DepartmentDto
+                {
+                    Id = d.Id,
+                    Uuid = d.Uuid,
+                    Name = d.Name,
+                    Description = d.Description,
+                    DoctorId = d.Doctors != null ? d.Doctors.Count() : 0,
+                    EmployeeId = d.Employees != null ? d.Employees.Count() : 0
+
+                }).ToList();
+
+            return View(department);
         }
 
 
         // Create
 
         [HttpGet]
-        public ActionResult Create()
+        public IActionResult Create()
         {
             return View();
         }
 
         [HttpPost]
-        public ActionResult Create(Department department)
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> Create(DepartmentCreateDto departmentDto)
         {
             if (ModelState.IsValid)
             {
-                _db.Departments.Add(department);
-                _db.SaveChanges();
-                return RedirectToAction("Index");
-            }
+           
+                var department = new Department
+                {
+                    Name = departmentDto.Name,
+                    Description = departmentDto.Description
+                };
 
-            ModelState.AddModelError("", "Please fill all the required fields.");
-            return View(department);
+                await _departmentRepository.AddDepartmentAsync(department);
+                //_db.Add(department);
+                //await _db.SaveChangesAsync();
+                return RedirectToAction(nameof(Index));
+            }
+            return View(departmentDto);
         }
 
 
         // Edit
 
         [HttpGet]
-        public ActionResult Edit(string uuid)
+        public async Task<IActionResult> Edit(string uuid)
         {
-            var dep = _db.Departments.FirstOrDefault(x => x.Uuid == uuid);
-
-            if (dep == null)
+            if (uuid == null)
             {
                 return NotFound();
             }
+            var department = await _departmentRepository.GetDepartmentByIdAsync(uuid);
 
-            return View(dep);
+            if (department == null)
+            {
+                return NotFound();
+            }
+            var departmentDto = new DepartmentUpdateDto
+            {
+
+                Id = department.Id,
+                Uuid = department.Uuid,
+                Name = department.Name,
+                Description = department.Description
+            };
+
+
+
+
+            return View(departmentDto);
         }
 
         [HttpPost]
-        public ActionResult Edit(Department department)
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> Edit(DepartmentUpdateDto departmentDto)
         {
             if (ModelState.IsValid)
             {
-                var olddep = _db.Departments
-                    .FirstOrDefault(x => x.Uuid == department.Uuid);
+                //var department = await _db.Departments
+                //    .FirstOrDefaultAsync(x => x.Uuid == departmentDto.Uuid);
 
-                if (olddep == null)
+                var department = await _departmentRepository.GetDepartmentByIdAsync(departmentDto.Uuid);
+
+                if (department == null)
+                {
                     return NotFound();
+                }
 
-                olddep.Name = department.Name;
-                olddep.Description = department.Description;
+                department.Name = departmentDto.Name;
+                department.Description = departmentDto.Description;
 
-                _db.SaveChanges();
-                return RedirectToAction("Index");
+
+             await _departmentRepository.UpdateDepartmentAsync(department);
+                return RedirectToAction(nameof(Index));
             }
-
-            ModelState.AddModelError("", "Please fill all the required fields.");
-            return View(department);
+            return View(departmentDto);
         }
+
 
 
         // Delete
 
         [HttpGet]
-        public ActionResult Delete(string uuid)
+        public async Task<IActionResult> Delete(string uuid)
         {
-            var dep = _db.Departments.FirstOrDefault(x => x.Uuid == uuid);
+            if (uuid == null)
+            {
+                return NotFound();
+            }
+            var department = await _departmentRepository.GetDepartmentByIdAsync(uuid);
 
-            if (dep == null)
+            //var department = await _db.Departments.FirstOrDefaultAsync(x => x.Uuid == uuid);
+
+
+            if (department == null)
             {
                 return NotFound();
             }
 
-            return View(dep);
+
+            return View(department);
         }
 
         [HttpPost]
         [ActionName("Delete")]
-        public ActionResult DeleteConfirm(string uuid)
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> DeleteConfirm(string uuid)
         {
-            var dep = _db.Departments.FirstOrDefault(x => x.Uuid == uuid);
+            var department = await _departmentRepository.GetDepartmentByIdAsync(uuid);
 
-            if (dep == null)
+            if (department != null)
             {
-                return NotFound();
+                await _departmentRepository.DeleteDepartmentAsync(uuid);
+                //_db.Departments.Remove(department);
+                //await _db.SaveChangesAsync();
+
             }
-
-            _db.Departments.Remove(dep);
-            _db.SaveChanges();
-
-            return RedirectToAction("Index");
+            return RedirectToAction(nameof(Index));
         }
     }
 }

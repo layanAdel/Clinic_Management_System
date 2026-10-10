@@ -1,4 +1,4 @@
-﻿@model Employee
+﻿@model Clinic_Management_System.Models.Employee
 @{
     ViewData["Title"] = "Delete Employee";
 }
@@ -50,11 +50,17 @@
             <input asp-for="Salary" class="form-control" readonly />
         </div>
 
+        <div class="form-group">
+            <label asp-for="DepartmentId" class="control-label"></label>
+            <input asp-for="DepartmentId" class="form-control" readonly />
+        </div>
 
+      
 
         <div class="form-group">
             <input type="submit" value="Delete" class="btn btn-danger mt-3" />
         </div>
+        <input type="hidden" asp-for="Uuid" />
     </form>
     <div>
         <a asp-action="Index">Back to List</a>

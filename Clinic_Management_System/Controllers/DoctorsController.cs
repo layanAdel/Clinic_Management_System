@@ -1,123 +1,203 @@
 ﻿using Clinic_Management_System.Data;
+using Clinic_Management_System.Dtos;
 using Clinic_Management_System.Models;
+using Clinic_Management_System.Repositories;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.Rendering;
+using Microsoft.EntityFrameworkCore;
 
 namespace Clinic_Management_System.Controllers
 {
     [Authorize]
     public class DoctorsController : Controller
     {
-        private readonly AppDbContext _db;
+        private readonly IDoctorRepository _doctorRepository;
+        private readonly IDepartmentRepository _departmentRepository;
 
-        public DoctorsController(AppDbContext db)
+        public DoctorsController(
+            IDoctorRepository doctorRepository,
+            IDepartmentRepository departmentRepository)
         {
-            _db = db;
+            _doctorRepository = doctorRepository;
+            _departmentRepository = departmentRepository;
         }
 
 
-        public ActionResult Index()
+        public async Task<IActionResult> Index()
         {
-            IEnumerable<Doctor> doct = _db.Doctors.ToList();
-            return View(doct);
+            var doctors = await _doctorRepository.GetAllDoctorsAsync();
+
+            IEnumerable<DoctorDto> doctor = doctors
+                .Select(d => new DoctorDto
+                {
+                    Id = d.Id,
+                    Uuid = d.Uuid,
+                    FirstName = d.FirstName,
+                    LastName = d.LastName,
+                    Specialization = d.Specialization,
+                    Phone = d.Phone,
+                    Email = d.Email,
+                    DepartmentName = d.Department != null ? d.Department.Name : null,
+
+                    AppointmentId = d.Appointments != null ? d.Appointments.Count() : 0,
+                    MedicalRecordId = d.MedicalRecords != null ? d.MedicalRecords.Count() : 0,
+                    PrescriptionId = d.Prescriptions != null ? d.Prescriptions.Count() : 0
+
+                }).ToList();
+
+            return View(doctor);
         }
 
 
         // Create
 
         [HttpGet]
-        public ActionResult Create()
+        public async Task<IActionResult> Create()
         {
+            var departments = await _departmentRepository.GetAllDepartmentsAsync();
+
+            SelectList selectList = new SelectList(departments, "Id", "Name");
+
+            ViewBag.Departments = selectList;
+
             return View();
         }
 
         [HttpPost]
-        public ActionResult Create(Doctor doctor)
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> Create(DoctorCreateDto doctorDto)
         {
             if (ModelState.IsValid)
             {
-                _db.Doctors.Add(doctor);
-                _db.SaveChanges();
-                return RedirectToAction("Index");
+                var doctor = new Doctor
+                {
+                    FirstName = doctorDto.FirstName,
+                    LastName = doctorDto.LastName,
+                    Specialization = doctorDto.Specialization,
+                    Phone = doctorDto.Phone,
+                    Email = doctorDto.Email,
+                    DepartmentId = doctorDto.DepartmentId
+                };
+
+                await _doctorRepository.AddDoctorAsync(doctor);
+
+                return RedirectToAction(nameof(Index));
             }
 
-            ModelState.AddModelError("", "Please fill all the required fields.");
-            return View(doctor);
+            ViewBag.Departments = new SelectList(
+             await _departmentRepository.GetAllDepartmentsAsync(), "Id", "Name");
+
+
+            return View(doctorDto);
         }
 
 
         // Edit
 
         [HttpGet]
-        public ActionResult Edit(string uuid)
+        public async Task<IActionResult> Edit(string uuid)
         {
-            var doct = _db.Doctors.FirstOrDefault(x => x.Uuid == uuid);
 
-            if (doct == null)
+            if (uuid == null)
+            {
+                return NotFound();
+            }
+            var doctor = await _doctorRepository.GetDoctorByIdAsync(uuid);
+
+            if (doctor == null)
             {
                 return NotFound();
             }
 
-            return View(doct);
+            var doctorDto = new DoctorUpdateDto
+            {
+                Id = doctor.Id,
+                Uuid = doctor.Uuid,
+                FirstName = doctor.FirstName,
+                LastName = doctor.LastName,
+                Specialization = doctor.Specialization,
+                Phone = doctor.Phone,
+                Email = doctor.Email,
+                DepartmentId = doctor.DepartmentId
+            };
+
+
+            var departments = await _departmentRepository.GetAllDepartmentsAsync();
+            ViewBag.Departments = new SelectList(departments, "Id", "Name");
+
+            return View(doctorDto);
         }
 
         [HttpPost]
-        public ActionResult Edit(Doctor doctor)
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> Edit(DoctorUpdateDto doctorDto)
         {
             if (ModelState.IsValid)
             {
-                var olddoct = _db.Doctors
-                    .FirstOrDefault(x => x.Uuid == doctor.Uuid);
+                var doctor = await _doctorRepository.GetDoctorByIdAsync(doctorDto.Uuid);
 
-                if (olddoct == null)
+                if (doctor == null)
+                {
                     return NotFound();
+                }
 
-                olddoct.FirstName = doctor.FirstName;
-                olddoct.LastName = doctor.LastName;
-                olddoct.Department = doctor.Department;
-                olddoct.Specialization = doctor.Specialization;
-                olddoct.Phone = doctor.Phone;
-                olddoct.Email = doctor.Email;
+                doctor.FirstName = doctorDto.FirstName;
+                doctor.LastName = doctorDto.LastName;
+                doctor.Specialization = doctorDto.Specialization;
+                doctor.Phone = doctorDto.Phone;
+                doctor.Email = doctorDto.Email;
+                doctor.DepartmentId = doctorDto.DepartmentId;
 
-                _db.SaveChanges();
-                return RedirectToAction("Index");
+
+                await _doctorRepository.UpdateDoctorAsync(doctor);
+
+                return RedirectToAction(nameof(Index));
+            }
+            ViewBag.Departments = new SelectList(
+             await _departmentRepository.GetAllDepartmentsAsync(), "Id", "Name");
+            return View(doctorDto);
+
             }
 
-            ModelState.AddModelError("", "Please fill all the required fields.");
+
+
+
+            // Delete
+
+            [HttpGet]
+        public async Task<IActionResult> Delete(string uuid)
+        {
+
+            if (uuid == null)
+            {
+                return NotFound();
+            }
+
+            var doctor = await _doctorRepository.GetDoctorByIdAsync(uuid);
+
+            if (doctor == null)
+            {
+                return NotFound();
+            }
+           
             return View(doctor);
         }
 
-
-        // Delete
-
-        [HttpGet]
-        public ActionResult Delete(string uuid)
+        [HttpPost, ActionName("Delete")]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> DeleteConfirmed(string uuid)
         {
-            var doct = _db.Doctors.FirstOrDefault(x => x.Uuid == uuid);
+            var doctor = await _doctorRepository.GetDoctorByIdAsync(uuid);
 
-            if (doct == null)
+            if (doctor != null)
             {
-                return NotFound();
+                await _doctorRepository.DeleteDoctorAsync(uuid);
             }
 
-            return View(doct);
+            return RedirectToAction(nameof(Index));
         }
 
-        [HttpPost]
-        [ActionName("Delete")]
-        public ActionResult DeleteConfirm(string uuid)
-        {
-            var doct = _db.Doctors.FirstOrDefault(x => x.Uuid == uuid);
-
-            if (doct == null)
-            {
-                return NotFound();
-            }
-
-            _db.Doctors.Remove(doct);
-            _db.SaveChanges();
-
-            return RedirectToAction("Index");
-        }
+       
     }
 }

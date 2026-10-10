@@ -1,7 +1,10 @@
 ﻿using Clinic_Management_System.Data;
+using Clinic_Management_System.Dtos;
 using Clinic_Management_System.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.Rendering;
+using Microsoft.EntityFrameworkCore;
 
 namespace Clinic_Management_System.Controllers
 {
@@ -15,83 +18,159 @@ namespace Clinic_Management_System.Controllers
             _db = db;
         }
 
-        public ActionResult Index()
+        public async Task<IActionResult> Index()
         {
-            IEnumerable<Prescription> pre = _db.Prescriptions.ToList();
+            IEnumerable<PrescriptionDto> pre = await _db.Prescriptions
+                .Select(p => new PrescriptionDto
+                {
+                    Id = p.Id,
+                    Uuid = p.Uuid,
+                    PatientName = p.Patient != null ? p.Patient.FirstName : null,
+                    DoctorName = p.Doctor != null ? p.Doctor.FirstName : null,
+                    Medication = p.Medication,
+                    Dosage = p.Dosage,
+                    Instructions = p.Instructions,
+                    PrescriptionDate = p.PrescriptionDate
+
+                }).ToListAsync();
+
             return View(pre);
         }
 
 
         // Create
         [HttpGet]
-        public ActionResult Create()
+        public IActionResult Create()
         {
+            var patients = _db.Patients.ToList();
+
+            SelectList selectList = new SelectList(patients, "Id", "FirstName");
+            ViewBag.Patients = selectList;
+
+            var doctors = _db.Doctors.ToList();
+
+            SelectList selectListD = new SelectList(doctors, "Id", "FirstName");
+
+            ViewBag.Doctors = selectListD;
             return View();
         }
 
         [HttpPost]
-        public ActionResult Create(Prescription prescription)
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> Create(PrescriptionCreateDto prescriptionDto)
         {
             if (ModelState.IsValid)
             {
-                _db.Prescriptions.Add(prescription);
-                _db.SaveChanges();
-                return RedirectToAction("Index");
-            }
 
-            ModelState.AddModelError("", "Please fill all the required fields.");
-            return View(prescription);
+                var prescription = new Prescription
+                {
+                    PatientId = prescriptionDto.PatientId,
+                    DoctorId = prescriptionDto.DoctorId,
+                    Medication = prescriptionDto.Medication,
+                    Dosage = prescriptionDto.Dosage,
+                    Instructions = prescriptionDto.Instructions,
+                    PrescriptionDate = prescriptionDto.PrescriptionDate
+                };
+
+
+                _db.Prescriptions.Add(prescription);
+                await _db.SaveChangesAsync();
+                return RedirectToAction(nameof(Index));
+        }
+
+        ViewBag.Patients = new SelectList(
+            await _db.Patients.ToListAsync(), "Id", "FirstName");
+
+        ViewBag.Doctors = new SelectList(
+          await _db.Doctors.ToListAsync(), "Id", "FirstName");
+            return View(prescriptionDto);
         }
 
 
         // Edit
         [HttpGet]
-        public ActionResult Edit(string uuid)
+        public async Task<IActionResult> Edit(string uuid)
         {
-            var pre = _db.Prescriptions.FirstOrDefault(x => x.Uuid == uuid);
+            if (uuid == null)
+            {
+                return NotFound();
+            }
+            var pre = await _db.Prescriptions.FirstOrDefaultAsync(x => x.Uuid == uuid);
 
             if (pre == null)
             {
                 return NotFound();
             }
 
-            return View(pre);
+            var prescriptionDto = new PrescriptionUpdateDto
+            {
+                Id = pre.Id,
+                Uuid = pre.Uuid,
+                PatientId = pre.PatientId,
+                DoctorId = pre.DoctorId,
+                Medication = pre.Medication,
+                Dosage = pre.Dosage,
+                Instructions = pre.Instructions,
+                PrescriptionDate = pre.PrescriptionDate
+            };
+
+
+            var Patients = await _db.Patients.ToListAsync();
+            ViewBag.Patients = new SelectList(Patients, "Id", "FirstName");
+
+
+            var Doctors = await _db.Doctors.ToListAsync();
+            ViewBag.Doctors = new SelectList(Doctors, "Id", "FirstName");
+
+            return View(prescriptionDto);
         }
 
         [HttpPost]
-        public ActionResult Edit(Prescription prescription)
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> Edit(PrescriptionUpdateDto prescriptionDto)
         {
             if (ModelState.IsValid)
             {
-                var oldpre = _db.Prescriptions
-                    .FirstOrDefault(x => x.Uuid == prescription.Uuid);
+                var prescription = await _db.Prescriptions
+                    .FirstOrDefaultAsync(x => x.Uuid == prescriptionDto.Uuid);
 
-                if (oldpre == null)
+                if (prescription == null)
+                {
                     return NotFound();
+                }
 
-                oldpre.FirstName = prescription.FirstName;
-                oldpre.LastName = prescription.LastName;
-                oldpre.DoctorFirstName = prescription.DoctorFirstName;
-                oldpre.DoctorLastName = prescription.DoctorLastName;
-                oldpre.Medication = prescription.Medication;
-                oldpre.Dosage = prescription.Dosage;
-                oldpre.Instructions = prescription.Instructions;
-                oldpre.PrescriptionDate = prescription.PrescriptionDate;
+                prescription.PatientId = prescriptionDto.PatientId;
+                prescription.DoctorId = prescriptionDto.DoctorId;
+                prescription.Medication = prescriptionDto.Medication;
+                prescription.Dosage = prescriptionDto.Dosage;
+                prescription.Instructions = prescriptionDto.Instructions;
+                prescription.PrescriptionDate = prescriptionDto.PrescriptionDate;
 
-                _db.SaveChanges();
-                return RedirectToAction("Index");
+                await _db.SaveChangesAsync();
+
+                return RedirectToAction(nameof(Index));
             }
 
-            ModelState.AddModelError("", "Please fill all the required fields.");
-            return View(prescription);
+            ViewBag.Patients = new SelectList(
+                await _db.Patients.ToListAsync(), "Id", "FirstName");
+
+            ViewBag.Doctors = new SelectList(
+                await _db.Doctors.ToListAsync(), "Id", "FirstName");
+
+            return View(prescriptionDto);
         }
 
 
         // Delete
         [HttpGet]
-        public ActionResult Delete(string uuid)
+        public async Task<IActionResult> Delete(string uuid)
         {
-            var pre = _db.Prescriptions.FirstOrDefault(x => x.Uuid == uuid);
+
+            if (uuid == null)
+            {
+                return NotFound();
+            }
+            var pre = await _db.Prescriptions.FirstOrDefaultAsync(x => x.Uuid == uuid);
 
             if (pre == null)
             {
@@ -103,19 +182,22 @@ namespace Clinic_Management_System.Controllers
 
         [HttpPost]
         [ActionName("Delete")]
-        public ActionResult DeleteConfirm(string uuid)
-        {
-            var pre = _db.Prescriptions.FirstOrDefault(x => x.Uuid == uuid);
+        [ValidateAntiForgeryToken]
 
-            if (pre == null)
+        public async Task<IActionResult> DeleteConfirm(string uuid)
+        {
+            var pre = await _db.Prescriptions.FirstOrDefaultAsync(x => x.Uuid == uuid);
+
+            if (pre != null)
             {
-                return NotFound();
+                _db.Prescriptions.Remove(pre);
+                await _db.SaveChangesAsync();
             }
 
-            _db.Prescriptions.Remove(pre);
-            _db.SaveChanges();
-
-            return RedirectToAction("Index");
+            return RedirectToAction(nameof(Index));
         }
+        
+
+
     }
 }

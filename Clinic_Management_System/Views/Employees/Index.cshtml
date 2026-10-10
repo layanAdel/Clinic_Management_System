@@ -1,4 +1,6 @@
-﻿@model IEnumerable<Employee>
+﻿@using Clinic_Management_System.Dtos
+@model IEnumerable<EmployeeDto>
+
 
     @{
     ViewData["Title"] = "Employees Page";
@@ -24,6 +26,8 @@
                 <th>Email</th>
                 <th>HireDate</th>
                 <th>Salary</th>
+                <th>Department</th>
+                <th></th>
             </tr>
 
         </thead>
@@ -41,7 +45,7 @@
                     <td>@emp.Email</td>
                     <td>@emp.HireDate</td>
                     <td>@emp.Salary</td>
-
+                    <td>@emp.DepartmentName</td>
                     <td>
 
                         <a asp-action="Edit" asp-route-uuid="@emp.Uuid" class="btn btn-warning"> Edit </a>

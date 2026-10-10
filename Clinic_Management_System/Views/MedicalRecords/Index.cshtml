@@ -1,4 +1,5 @@
-﻿@model IEnumerable<MedicalRecord>
+﻿@using Clinic_Management_System.Dtos
+@model IEnumerable<MedicalRecordDto>
 
     @{
     ViewData["Title"] = "MedicalRecords Page";
@@ -16,13 +17,12 @@
         <thead>
             <tr>
                 <th>Id</th>
-                <th>Patient First Name</th>
-                <th>Patient Last Name</th>
-                <th>Doctor First Name</th>
-                <th>Doctor Last Name</th>
+                <th>Patient Name</th>
+                <th>Doctor Name</th>
                 <th>Visit Date</th>
                 <th>Diagnosis</th>
                 <th>Doctor Notes</th>
+                <th></th>
             </tr>
         </thead>
         <tbody>
@@ -31,10 +31,8 @@
 
                 <tr>
                     <td>@med.Id</td>
-                    <td>@med.FirstName</td>
-                    <td>@med.LastName</td>
-                    <td>@med.DoctorFirstName</td>
-                    <td>@med.DoctorLastName</td>
+                    <td>@med.PatientName</td>
+                    <td>@med.DoctorName</td>
                     <td>@med.VisitDate</td>
                     <td>@med.Diagnosis</td>
                     <td>@med.Notes</td>

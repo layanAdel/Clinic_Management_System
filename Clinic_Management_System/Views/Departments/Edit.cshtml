@@ -1,4 +1,5 @@
-﻿@model Department
+﻿@using Clinic_Management_System.Dtos
+@model DepartmentUpdateDto
 @{
     ViewData["Title"] = "Edit Department";
 
@@ -7,7 +8,7 @@
 <div class="container">
     <h1>Edit Department</h1>
     <form asp-action="Edit" method="post" asp-route-Uuid="@Model.Uuid">
-
+        <input type="hidden" asp-for="Uuid" />
         <div class="text-danger" asp-validation-summary="All">
         </div>
 
@@ -36,7 +37,8 @@
 
 
 
-
 @section Scripts {
-    <partial name="_ValidationScriptsPartial" />
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
 }

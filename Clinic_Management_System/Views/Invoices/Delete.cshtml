@@ -1,4 +1,4 @@
-﻿@model Invoice
+﻿@model Clinic_Management_System.Models.Invoice
 @{
     ViewData["Title"] = "Delete Invoice";
 }
@@ -9,15 +9,10 @@
     <form asp-action="Delete" method="post" asp-route-Uuid="@Model.Uuid">
 
        
-          
+      
         <div class="form-group">
-            <label asp-for="FirstName" class="control-label"></label>
-            <input asp-for="FirstName" class="form-control" readonly />
-        </div>
-
-        <div class="form-group">
-            <label asp-for="LastName" class="control-label"></label>
-            <input asp-for="LastName" class="form-control" readonly />
+            <label asp-for="PatientId" class="control-label"></label>
+            <input asp-for="PatientId" class="form-control" readonly />
         </div>
 
         
@@ -42,6 +37,8 @@
         <div class="form-group">
             <input type="submit" value="Delete" class="btn btn-danger mt-3" />
         </div>
+        <input type="hidden" asp-for="Uuid" />
+
     </form>
     <div>
         <a asp-action="Index">Back to List</a>

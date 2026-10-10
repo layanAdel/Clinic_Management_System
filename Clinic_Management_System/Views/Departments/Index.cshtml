@@ -1,5 +1,5 @@
-﻿@model IEnumerable<Department>
-
+﻿@using Clinic_Management_System.Dtos
+@model IEnumerable<DepartmentDto>
     @{
     ViewData["Title"] = "Departments Page";
 
@@ -18,7 +18,9 @@
                 <th>Id</th>
                 <th>Name</th>
                 <th>Description</th>
-               
+                <th>Count of Doctor</th>
+                <th>Count of Employee</th>
+               <th></th>
             </tr>
 
         </thead>
@@ -31,6 +33,8 @@
                     <td>@dep.Id</td>
                     <td>@dep.Name</td>
                     <td>@dep.Description</td>
+                    <td>@dep.DoctorId</td>
+                    <td>@dep.EmployeeId</td>
                     
                     <td>
 
