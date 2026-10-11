@@ -1,6 +1,7 @@
 ﻿using Clinic_Management_System.Data;
 using Clinic_Management_System.Dtos;
 using Clinic_Management_System.Models;
+using Clinic_Management_System.Repositories;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -10,17 +11,18 @@ namespace Clinic_Management_System.Controllers
     [Authorize]
     public class PatientsController : Controller
     {
-        private readonly AppDbContext _db;
-
-        public PatientsController(AppDbContext db)
+        private readonly IPatientRepository _patientRepository;
+        public PatientsController(IPatientRepository patientRepository)
         {
-            _db = db;
+            _patientRepository = patientRepository;
         }
 
 
         public async Task<IActionResult> Index()
         {
-            IEnumerable<PatientDto> patients = await _db.Patients
+            var patients = await _patientRepository.GetAllPatientsAsync();
+
+            IEnumerable<PatientDto> patient = patients
                .Select(p => new PatientDto
                {
                    Id = p.Id,
@@ -31,14 +33,14 @@ namespace Clinic_Management_System.Controllers
                    Gender = p.Gender,
                    Phone = p.Phone,
                    Email = p.Email,
-                   AppointmentId = p.Appointments.Count(),
-                   MedicalRecordId = p.MedicalRecords.Count(),
-                   PrescriptionId = p.Prescriptions.Count(),
-                   InvoiceId = p.Invoices.Count()
+                   AppointmentId = p.Appointments != null ? p.Appointments.Count() : 0,
+                   MedicalRecordId = p.MedicalRecords != null ? p.MedicalRecords.Count() : 0,
+                   PrescriptionId = p.Prescriptions != null ? p.Prescriptions.Count() : 0,
+                   InvoiceId = p.Invoices != null ? p.Invoices.Count() : 0
 
-               }).ToListAsync();
+               }).ToList();
 
-            return View(patients);
+            return View(patient);
         }
         
 
@@ -67,8 +69,8 @@ namespace Clinic_Management_System.Controllers
                     Phone = patientDto.Phone,
                     Email = patientDto.Email
                 };
-                _db.Patients.Add(patient);
-               await _db.SaveChangesAsync();
+                
+                await _patientRepository.AddPatientAsync(patient);
                 return RedirectToAction(nameof(Index));
             }
             return View(patientDto);
@@ -84,7 +86,7 @@ namespace Clinic_Management_System.Controllers
                 return NotFound();
             }
 
-            var patient = await _db.Patients.FirstOrDefaultAsync(x => x.Uuid == uuid);
+            var patient = await _patientRepository.GetPatientByIdAsync(uuid);
 
             if (patient == null)
             {
@@ -111,8 +113,7 @@ namespace Clinic_Management_System.Controllers
         {
             if (ModelState.IsValid)
             {
-                var patient = await _db.Patients
-                    .FirstOrDefaultAsync(x => x.Uuid == patientDto.Uuid);
+                var patient = await _patientRepository.GetPatientByIdAsync(patientDto.Uuid);
 
                 if (patient == null)
                 {
@@ -126,7 +127,7 @@ namespace Clinic_Management_System.Controllers
                 patient.Phone = patientDto.Phone;
                 patient.Email = patientDto.Email;
 
-                await _db.SaveChangesAsync();
+                await _patientRepository.UpdatePatientAsync(patient);
 
                 return RedirectToAction(nameof(Index));
             }
@@ -144,7 +145,7 @@ namespace Clinic_Management_System.Controllers
             {
                 return NotFound();
             }
-            var patient = await _db.Patients.FirstOrDefaultAsync(x => x.Uuid == uuid);
+            var patient = await _patientRepository.GetPatientByIdAsync(uuid);
 
             if (patient == null)
             {
@@ -160,12 +161,12 @@ namespace Clinic_Management_System.Controllers
 
         public async Task<IActionResult> DeleteConfirm(string uuid)
         {
-            var patient =await _db.Patients.FirstOrDefaultAsync(x => x.Uuid == uuid);
+            var patient = await _patientRepository.GetPatientByIdAsync(uuid);
 
             if (patient != null)
             {
-                _db.Patients.Remove(patient);
-                await _db.SaveChangesAsync();
+
+                await _patientRepository.DeletePatientAsync(uuid);
             }
 
            

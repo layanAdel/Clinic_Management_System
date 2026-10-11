@@ -1,6 +1,7 @@
 ﻿using Clinic_Management_System.Data;
 using Clinic_Management_System.Dtos;
 using Clinic_Management_System.Models;
+using Clinic_Management_System.Repositories;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
@@ -13,17 +14,26 @@ namespace Clinic_Management_System.Controllers
     [Authorize]
     public class AppointmentsController : Controller
     {
-        private readonly AppDbContext _db;
+        private readonly IAppointmentRepository _appointmentRepository;
+        private readonly IDoctorRepository _doctorRepository;
+        private readonly IPatientRepository _patientRepository;
 
-        public AppointmentsController(AppDbContext db)
+        public AppointmentsController(IAppointmentRepository appointmentRepository,
+            IDoctorRepository doctorRepository, 
+            IPatientRepository patientRepository)
         {
-            _db = db;
+            _appointmentRepository = appointmentRepository;
+            _doctorRepository = doctorRepository;
+            _patientRepository = patientRepository;
         }
 
-        public ActionResult Index()
-        {
 
-            IEnumerable<AppointmentDto> appointment = _db.Appointments.Select(a => new AppointmentDto
+        public async Task<IActionResult> Index()
+        {
+            var appointments = await _appointmentRepository.GetAllAppointmentsAsync();
+
+            IEnumerable <AppointmentDto> appointment = appointments
+                .Select(a => new AppointmentDto
             {
                 Id = a.Id,
                 Uuid = a.Uuid,
@@ -41,18 +51,19 @@ namespace Clinic_Management_System.Controllers
 
             // Create
             [HttpGet]
-        public IActionResult Create()
+        public async Task<IActionResult> Create()
         {
 
-            var patients = _db.Patients.ToList();
+            var patients = await _patientRepository.GetAllPatientsAsync();
 
             SelectList selectList = new SelectList(patients, "Id", "FirstName");
             ViewBag.Patients = selectList;
 
-            var doctors = _db.Doctors.ToList();
+
+
+            var doctors =await _doctorRepository.GetAllDoctorsAsync();
 
             SelectList selectListD = new SelectList(doctors, "Id", "FirstName");
-
             ViewBag.Doctors = selectListD;
 
             return View();
@@ -72,15 +83,17 @@ namespace Clinic_Management_System.Controllers
                         Reason = appointmentDto.Reason,
                         AppointmentDate = appointmentDto.AppointmentDate,
                     };
-                _db.Appointments.Add(appointment);
-                await _db.SaveChangesAsync();
+
+
+               await _appointmentRepository.AddAppointmentAsync(appointment);
+
                 return RedirectToAction(nameof(Index));
             }
             ViewBag.Patients = new SelectList(
-              await _db.Patients.ToListAsync(), "Id", "FirstName");
+               await _patientRepository.GetAllPatientsAsync(), "Id", "FirstName");
 
             ViewBag.Doctors = new SelectList(
-              await _db.Doctors.ToListAsync(), "Id", "FirstName");
+              await _doctorRepository.GetAllDoctorsAsync(), "Id", "FirstName");
             return View(appointmentDto);
         }
 
@@ -94,7 +107,7 @@ namespace Clinic_Management_System.Controllers
                 return NotFound();
             }
 
-            var appo = await _db.Appointments.FirstOrDefaultAsync(x => x.Uuid == uuid);
+            var appo = await _appointmentRepository.GetAppointmentByIdAsync(uuid);
 
             if (appo == null)
             {
@@ -111,11 +124,11 @@ namespace Clinic_Management_System.Controllers
                 Reason = appo.Reason
             };
 
-            var Patients = await _db.Patients.ToListAsync();
+            var Patients = await _patientRepository.GetAllPatientsAsync();
             ViewBag.Patients = new SelectList(Patients, "Id", "FirstName");
 
 
-            var Doctors = await _db.Doctors.ToListAsync();
+            var Doctors = await _doctorRepository.GetAllDoctorsAsync();
             ViewBag.Doctors = new SelectList(Doctors, "Id", "FirstName");
 
             return View(appointmentDto);
@@ -130,10 +143,10 @@ namespace Clinic_Management_System.Controllers
 
             if (ModelState.IsValid)
             {
-                    var appointment = await _db.Appointments
-                        .FirstOrDefaultAsync(x => x.Uuid == appointmentDto.Uuid);
-                    
-                    if (appointment == null)
+                var appointment = await _appointmentRepository.GetAppointmentByIdAsync(appointmentDto.Uuid);
+
+
+                if (appointment == null)
                     {
                         return NotFound();
                     }
@@ -144,14 +157,17 @@ namespace Clinic_Management_System.Controllers
                         appointment.Status = appointmentDto.Status;
                         appointment.Reason = appointmentDto.Reason;
 
-                        await _db.SaveChangesAsync();
+                await _appointmentRepository.UpdateAppointmentAsync(appointment);
 
-                        return RedirectToAction(nameof(Index));
+                return RedirectToAction(nameof(Index));
                     }
-            
 
-            ViewBag.Patients = new SelectList(await _db.Patients.ToListAsync(), "Id", "FirstName");
-            ViewBag.Doctors = new SelectList(await _db.Doctors.ToListAsync(), "Id", "FirstName");
+
+            ViewBag.Patients = new SelectList(
+               await _patientRepository.GetAllPatientsAsync(), "Id", "FirstName");
+
+            ViewBag.Doctors = new SelectList(
+              await _doctorRepository.GetAllDoctorsAsync(), "Id", "FirstName");
 
             return View(appointmentDto);
         }
@@ -166,7 +182,7 @@ namespace Clinic_Management_System.Controllers
                 return NotFound();
             }
 
-            var appo =await _db.Appointments.FirstOrDefaultAsync(x => x.Uuid == uuid);
+            var appo = await _appointmentRepository.GetAppointmentByIdAsync(uuid);
 
             if (appo == null)
             {
@@ -183,14 +199,14 @@ namespace Clinic_Management_System.Controllers
 
         public async Task<IActionResult> DeleteConfirm(string uuid)
         {
-            var appo = await _db.Appointments.FirstOrDefaultAsync(x => x.Uuid == uuid);
+            var appo = await _appointmentRepository.GetAppointmentByIdAsync(uuid);
 
             if (appo == null)
             {
                     return NotFound();
                 }
-                _db.Appointments.Remove(appo);
-                await _db.SaveChangesAsync();
+
+            await _appointmentRepository.DeleteAppointmentAsync(uuid);
 
                 return RedirectToAction(nameof(Index));
         }

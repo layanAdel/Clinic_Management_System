@@ -1,6 +1,7 @@
 ﻿using Clinic_Management_System.Data;
 using Clinic_Management_System.Dtos;
 using Clinic_Management_System.Models;
+using Clinic_Management_System.Repositories;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
@@ -11,18 +12,26 @@ namespace Clinic_Management_System.Controllers
     [Authorize]
     public class MedicalRecordsController : Controller
     {
-        private readonly AppDbContext _db;
+       
+        private readonly IMedicalRecordRepository _medicalRecordRepository;
+        private readonly IDoctorRepository _doctorRepository;
+        private readonly IPatientRepository _patientRepository;
 
-        public MedicalRecordsController(AppDbContext db)
+        public MedicalRecordsController(IMedicalRecordRepository medicalRecordRepository,
+            IDoctorRepository doctorRepository,
+            IPatientRepository patientRepository)
         {
-            _db = db;
+            _medicalRecordRepository = medicalRecordRepository;
+            _doctorRepository = doctorRepository;
+            _patientRepository = patientRepository;
         }
-
-
 
         public async Task<IActionResult> Index()
         {
-            IEnumerable<MedicalRecordDto> med = await _db.MedicalRecords.Select(a => new MedicalRecordDto
+            var medicalRecords = await _medicalRecordRepository.GetAllMedicalRecordsAsync();
+
+            IEnumerable <MedicalRecordDto> medicalRecord = medicalRecords
+                .Select(a => new MedicalRecordDto
             {
                 Id = a.Id,
                 Uuid = a.Uuid,
@@ -31,25 +40,28 @@ namespace Clinic_Management_System.Controllers
                 VisitDate = a.VisitDate,
                 Diagnosis = a.Diagnosis,
                 Notes = a.Notes
-            }).ToListAsync();
 
-            return View(med);
+            }).ToList();
+
+            return View(medicalRecord);
         }
 
 
         // Create
         [HttpGet]
-        public IActionResult Create()
+        public async Task<IActionResult> Create()
         {
-            var patients = _db.Patients.ToList();
+
+            var patients = await _patientRepository.GetAllPatientsAsync();
 
             SelectList selectList = new SelectList(patients, "Id", "FirstName");
             ViewBag.Patients = selectList;
 
-            var doctors = _db.Doctors.ToList();
+
+
+            var doctors = await _doctorRepository.GetAllDoctorsAsync();
 
             SelectList selectListD = new SelectList(doctors, "Id", "FirstName");
-
             ViewBag.Doctors = selectListD;
 
             return View();
@@ -70,17 +82,17 @@ namespace Clinic_Management_System.Controllers
                     Notes = medicalRecordDto.Notes,
                 };
 
-                _db.MedicalRecords.Add(medicalRecord);
-                await _db.SaveChangesAsync();
+                await _medicalRecordRepository.AddMedicalRecordAsync(medicalRecord);
+
                 return RedirectToAction(nameof(Index));
             }
 
-            ViewBag.Patients = new SelectList( 
-                await _db.Patients.ToListAsync(), "Id", "FirstName");
+            ViewBag.Patients = new SelectList(
+             await _patientRepository.GetAllPatientsAsync(), "Id", "FirstName");
 
             ViewBag.Doctors = new SelectList(
-              await _db.Doctors.ToListAsync(), "Id", "FirstName");
-            
+              await _doctorRepository.GetAllDoctorsAsync(), "Id", "FirstName");
+
             return View(medicalRecordDto);
         }
 
@@ -93,7 +105,7 @@ namespace Clinic_Management_System.Controllers
             {
                 return NotFound();
             }
-            var med =await _db.MedicalRecords.FirstOrDefaultAsync(x => x.Uuid == uuid);
+            var med =await _medicalRecordRepository.GetMedicalRecordByIdAsync(uuid);
 
             if (med == null)
             {
@@ -111,11 +123,11 @@ namespace Clinic_Management_System.Controllers
                 Notes = med.Notes,
             };
 
-            var Patients = await _db.Patients.ToListAsync();
+            var Patients = await _patientRepository.GetAllPatientsAsync();
             ViewBag.Patients = new SelectList(Patients, "Id", "FirstName");
 
 
-            var Doctors = await _db.Doctors.ToListAsync();
+            var Doctors = await _doctorRepository.GetAllDoctorsAsync();
             ViewBag.Doctors = new SelectList(Doctors, "Id", "FirstName");
 
             return View(medicalRecordDto);
@@ -127,8 +139,7 @@ namespace Clinic_Management_System.Controllers
         {
             if (ModelState.IsValid)
             {
-                var medicalRecord = await _db.MedicalRecords
-                    .FirstOrDefaultAsync(x => x.Uuid == medicalRecordDto.Uuid);
+                var medicalRecord = await _medicalRecordRepository.GetMedicalRecordByIdAsync(medicalRecordDto.Uuid);
 
                 if (medicalRecord == null)
                 {
@@ -141,16 +152,16 @@ namespace Clinic_Management_System.Controllers
                 medicalRecord.Diagnosis = medicalRecordDto.Diagnosis;
                 medicalRecord.Notes = medicalRecordDto.Notes;
 
-                await _db.SaveChangesAsync();
+                await _medicalRecordRepository.UpdateMedicalRecordAsync(medicalRecord);
 
                 return RedirectToAction(nameof(Index));
             }
 
             ViewBag.Patients = new SelectList(
-                await _db.Patients.ToListAsync(), "Id", "FirstName");
+               await _patientRepository.GetAllPatientsAsync(), "Id", "FirstName");
 
             ViewBag.Doctors = new SelectList(
-                await _db.Doctors.ToListAsync(), "Id", "FirstName");
+              await _doctorRepository.GetAllDoctorsAsync(), "Id", "FirstName");
 
             return View(medicalRecordDto);
         }
@@ -166,7 +177,7 @@ namespace Clinic_Management_System.Controllers
                 return NotFound();
             }
 
-            var med =await _db.MedicalRecords.FirstOrDefaultAsync(x => x.Uuid == uuid);
+            var med =await _medicalRecordRepository.GetMedicalRecordByIdAsync(uuid);
 
             if (med == null)
             {
@@ -181,12 +192,11 @@ namespace Clinic_Management_System.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteConfirm(string uuid)
         {
-            var med = await _db.MedicalRecords.FirstOrDefaultAsync(x => x.Uuid == uuid);
+            var med = await _medicalRecordRepository.GetMedicalRecordByIdAsync(uuid);
 
             if (med != null)
             {
-                _db.MedicalRecords.Remove(med);
-                await _db.SaveChangesAsync();
+               await _medicalRecordRepository.DeleteMedicalRecordAsync(uuid);
             }
 
             return RedirectToAction(nameof(Index));

@@ -11,12 +11,7 @@ namespace Clinic_Management_System.Controllers
     [Authorize]
     public class DepartmentsController : Controller
     {
-        //private readonly AppDbContext _db;
-
-        //public DepartmentsController(AppDbContext db)
-        //{
-        //    _db = db;
-        //}
+       
         private readonly IDepartmentRepository _departmentRepository;
         public DepartmentsController(IDepartmentRepository departmentRepository)
         {
@@ -66,8 +61,7 @@ namespace Clinic_Management_System.Controllers
                 };
 
                 await _departmentRepository.AddDepartmentAsync(department);
-                //_db.Add(department);
-                //await _db.SaveChangesAsync();
+                
                 return RedirectToAction(nameof(Index));
             }
             return View(departmentDto);
@@ -98,9 +92,6 @@ namespace Clinic_Management_System.Controllers
                 Description = department.Description
             };
 
-
-
-
             return View(departmentDto);
         }
 
@@ -110,9 +101,7 @@ namespace Clinic_Management_System.Controllers
         {
             if (ModelState.IsValid)
             {
-                //var department = await _db.Departments
-                //    .FirstOrDefaultAsync(x => x.Uuid == departmentDto.Uuid);
-
+                
                 var department = await _departmentRepository.GetDepartmentByIdAsync(departmentDto.Uuid);
 
                 if (department == null)
@@ -143,8 +132,6 @@ namespace Clinic_Management_System.Controllers
             }
             var department = await _departmentRepository.GetDepartmentByIdAsync(uuid);
 
-            //var department = await _db.Departments.FirstOrDefaultAsync(x => x.Uuid == uuid);
-
 
             if (department == null)
             {
@@ -165,8 +152,7 @@ namespace Clinic_Management_System.Controllers
             if (department != null)
             {
                 await _departmentRepository.DeleteDepartmentAsync(uuid);
-                //_db.Departments.Remove(department);
-                //await _db.SaveChangesAsync();
+                
 
             }
             return RedirectToAction(nameof(Index));

@@ -1,6 +1,7 @@
 ﻿using Clinic_Management_System.Data;
 using Clinic_Management_System.Dtos;
 using Clinic_Management_System.Models;
+using Clinic_Management_System.Repositories;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
@@ -12,16 +13,25 @@ namespace Clinic_Management_System.Controllers
     [Authorize]
     public class InvoicesController : Controller
     {
-        private readonly AppDbContext _db;
 
-        public InvoicesController(AppDbContext db)
+        private readonly IInvoiceRepository _invoiceRepository;
+        private readonly IPatientRepository _patientRepository;
+
+        public InvoicesController(IInvoiceRepository invoiceRepository,
+            IPatientRepository patientRepository)
         {
-            _db = db;
+            _invoiceRepository = invoiceRepository;
+            _patientRepository = patientRepository;
         }
+
 
         public async Task<IActionResult> Index()
         {
-            IEnumerable<InvoiceDto> inv = await _db.Invoices.Select(i => new InvoiceDto
+            var invoices = await _invoiceRepository.GetAllInvoicesAsync();
+
+            IEnumerable <InvoiceDto> invoice = invoices
+
+                .Select(i => new InvoiceDto
                 {
                     Id = i.Id,
                     Uuid = i.Uuid,
@@ -30,20 +40,21 @@ namespace Clinic_Management_System.Controllers
                     Amount = i.Amount,
                     PaymentMethod = i.PaymentMethod
 
-                }).ToListAsync();
+                }).ToList();
 
-            return View(inv);
+            return View(invoice);
         }
 
 
         // Create
         [HttpGet]
-        public IActionResult Create()
+        public async Task<IActionResult> Create()
         {
-            var patients = _db.Patients.ToList();
+            var patients = await _patientRepository.GetAllPatientsAsync();
 
             SelectList selectList = new SelectList(patients, "Id", "FirstName");
             ViewBag.Patients = selectList;
+
             return View();
         }
 
@@ -62,14 +73,14 @@ namespace Clinic_Management_System.Controllers
                     PaymentMethod = invoiceDto.PaymentMethod
                 };
 
-                _db.Invoices.Add(invoice);
-                await _db.SaveChangesAsync();
+                await _invoiceRepository.AddInvoiceAsync(invoice);
+
                 return RedirectToAction(nameof(Index));
             }
 
 
             ViewBag.Patients = new SelectList(
-                await _db.Patients.ToListAsync(), "Id", "FirstName");
+              await _patientRepository.GetAllPatientsAsync(), "Id", "FirstName");
 
             return View(invoiceDto);
         }
@@ -84,7 +95,7 @@ namespace Clinic_Management_System.Controllers
                 return NotFound();
             }
 
-            var inv = await _db.Invoices.FirstOrDefaultAsync(x => x.Uuid == uuid);
+            var inv = await _invoiceRepository.GetInvoiceByIdAsync(uuid);
 
             if (inv == null)
             {
@@ -101,7 +112,7 @@ namespace Clinic_Management_System.Controllers
                 PaymentMethod = inv.PaymentMethod
             };
 
-            var Patients = await _db.Patients.ToListAsync();
+            var Patients = await _patientRepository.GetAllPatientsAsync();
             ViewBag.Patients = new SelectList(Patients, "Id", "FirstName");
 
             return View(invoiceDto);
@@ -113,8 +124,8 @@ namespace Clinic_Management_System.Controllers
         {
             if (ModelState.IsValid)
             {
-                var invoice = await _db.Invoices
-                    .FirstOrDefaultAsync(x => x.Uuid == invoiceDto.Uuid);
+                var invoice = await _invoiceRepository.GetInvoiceByIdAsync(invoiceDto.Uuid);
+
 
                 if (invoice == null)
                 {
@@ -126,13 +137,13 @@ namespace Clinic_Management_System.Controllers
                 invoice.Amount = invoiceDto.Amount;
                 invoice.PaymentMethod = invoiceDto.PaymentMethod;
 
-                await _db.SaveChangesAsync();
+                await _invoiceRepository.UpdateInvoiceAsync(invoice);
 
                 return RedirectToAction(nameof(Index));
             }
 
             ViewBag.Patients = new SelectList(
-                await _db.Patients.ToListAsync(), "Id", "FirstName");
+               await _patientRepository.GetAllPatientsAsync(), "Id", "FirstName");
 
             return View(invoiceDto);
         }
@@ -147,7 +158,7 @@ namespace Clinic_Management_System.Controllers
                 return NotFound();
             }
 
-            var inv = await _db.Invoices.FirstOrDefaultAsync(x => x.Uuid == uuid);
+            var inv = await _invoiceRepository.GetInvoiceByIdAsync(uuid);
 
             if (inv == null)
             {
@@ -163,12 +174,12 @@ namespace Clinic_Management_System.Controllers
 
         public async Task<IActionResult> DeleteConfirm(string uuid)
         {
-            var inv = await _db.Invoices.FirstOrDefaultAsync(x => x.Uuid == uuid);
+            var inv = await _invoiceRepository.GetInvoiceByIdAsync(uuid);
 
             if (inv != null)
             {
-                _db.Invoices.Remove(inv);
-                await _db.SaveChangesAsync();
+              await _invoiceRepository.DeleteInvoiceAsync(uuid);
+
 
             }
 

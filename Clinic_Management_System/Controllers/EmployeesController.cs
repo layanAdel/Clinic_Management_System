@@ -1,6 +1,7 @@
 ﻿using Clinic_Management_System.Data;
 using Clinic_Management_System.Dtos;
 using Clinic_Management_System.Models;
+using Clinic_Management_System.Repositories;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
@@ -12,16 +13,21 @@ namespace Clinic_Management_System.Controllers
     [Authorize]
     public class EmployeesController : Controller
     {
-        private readonly AppDbContext _db;
 
-        public EmployeesController(AppDbContext db)
+        private readonly IEmployeeRepository _employeeRepository;
+        private readonly IDepartmentRepository _departmentRepository;
+        public EmployeesController(IEmployeeRepository employeeRepository,
+            IDepartmentRepository departmentRepository)
         {
-            _db = db;
+            _employeeRepository = employeeRepository;
+            _departmentRepository = departmentRepository;
         }
 
         public async Task<IActionResult> Index()
         {
-            IEnumerable<EmployeeDto> emp = await _db.Employees
+            var employees = await _employeeRepository.GetAllEmployeesAsync();
+
+            IEnumerable<EmployeeDto> employee = employees
                 .Select(e => new EmployeeDto
                 {
                     Id = e.Id,
@@ -35,18 +41,19 @@ namespace Clinic_Management_System.Controllers
                     Salary = e.Salary,
                     DepartmentName = e.Department != null ? e.Department.Name : null
 
-                }).ToListAsync();
+                }).ToList();
 
-            return View(emp);
+            return View(employee);
         }
 
 
         // Create
 
         [HttpGet]
-        public IActionResult Create()
+        public async Task<IActionResult> Create()
         {
-            var departments = _db.Departments.ToList();
+            var departments = await _departmentRepository.GetAllDepartmentsAsync();
+
 
             SelectList selectList = new SelectList(departments, "Id", "Name");
 
@@ -74,12 +81,11 @@ namespace Clinic_Management_System.Controllers
                 };
 
 
-                _db.Add(employee);
-                await _db.SaveChangesAsync();
+                await _employeeRepository.AddEmployeeAsync(employee);
                 return RedirectToAction(nameof(Index));
             }
             ViewBag.Departments = new SelectList(
-                await _db.Departments.ToListAsync(), "Id", "Name");
+                await _departmentRepository.GetAllDepartmentsAsync(), "Id", "Name");
 
             return View(employeeDto);
         }
@@ -95,7 +101,7 @@ namespace Clinic_Management_System.Controllers
                 return NotFound();
             }
 
-            var emp =await _db.Employees.FirstOrDefaultAsync(x => x.Uuid == uuid);
+            var emp = await _employeeRepository.GetEmployeeByIdAsync(uuid);
 
             if (emp == null)
             {
@@ -115,7 +121,7 @@ namespace Clinic_Management_System.Controllers
                 DepartmentId = emp.DepartmentId
             };
 
-            var departments = await _db.Departments.ToListAsync();
+            var departments = await _departmentRepository.GetAllDepartmentsAsync();
             ViewBag.Departments = new SelectList(departments, "Id", "Name");
 
             return View(employeeDto);
@@ -127,8 +133,7 @@ namespace Clinic_Management_System.Controllers
         {
             if (ModelState.IsValid)
             {
-                var employee = await _db.Employees
-                    .FirstOrDefaultAsync(x => x.Uuid == employeeDto.Uuid);
+                var employee = await _employeeRepository.GetEmployeeByIdAsync(employeeDto.Uuid);
 
                 if (employee == null)
                 {
@@ -144,13 +149,13 @@ namespace Clinic_Management_System.Controllers
                 employee.Salary = employeeDto.Salary;
                 employee.DepartmentId = employeeDto.DepartmentId;
 
-                await _db.SaveChangesAsync();
+                await _employeeRepository.UpdateEmployeeAsync(employee);
 
                 return RedirectToAction(nameof(Index));
             }
 
             ViewBag.Departments = new SelectList(
-                await _db.Departments.ToListAsync(), "Id", "Name");
+                await _departmentRepository.GetAllDepartmentsAsync(), "Id", "Name");
 
             return View(employeeDto);
         }
@@ -166,7 +171,7 @@ namespace Clinic_Management_System.Controllers
             {
                 return NotFound();
             }
-            var emp =await _db.Employees.FirstOrDefaultAsync(x => x.Uuid == uuid);
+            var emp = await _employeeRepository.GetEmployeeByIdAsync(uuid);
 
 
             if (emp == null)
@@ -182,15 +187,15 @@ namespace Clinic_Management_System.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteConfirm(string uuid)
         {
-            var emp = await _db.Employees.FirstOrDefaultAsync(x => x.Uuid == uuid);
+            var emp = await _employeeRepository.GetEmployeeByIdAsync(uuid);
+
 
             if (emp != null)
             {
-                _db.Employees.Remove(emp);
-                await _db.SaveChangesAsync();
+                await _employeeRepository.DeleteEmployeeAsync(uuid);
             }
 
-            
+
             return RedirectToAction(nameof(Index));
         }
 

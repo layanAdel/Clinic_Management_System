@@ -1,6 +1,7 @@
 ﻿using Clinic_Management_System.Data;
 using Clinic_Management_System.Dtos;
 using Clinic_Management_System.Models;
+using Clinic_Management_System.Repositories;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
@@ -11,16 +12,24 @@ namespace Clinic_Management_System.Controllers
     [Authorize]
     public class PrescriptionsController : Controller
     {
-        private readonly AppDbContext _db;
+        private readonly IPrescriptionRepository _prescriptionRepository;
+        private readonly IDoctorRepository _doctorRepository;
+        private readonly IPatientRepository _patientRepository;
 
-        public PrescriptionsController(AppDbContext db)
+        public PrescriptionsController(IPrescriptionRepository prescriptionRepository,
+            IDoctorRepository doctorRepository,
+            IPatientRepository patientRepository)
         {
-            _db = db;
+            _prescriptionRepository = prescriptionRepository;
+            _doctorRepository = doctorRepository;
+            _patientRepository = patientRepository;
         }
 
         public async Task<IActionResult> Index()
         {
-            IEnumerable<PrescriptionDto> pre = await _db.Prescriptions
+            var prescriptions = await _prescriptionRepository.GetAllPrescriptionsAsync();
+
+            IEnumerable<PrescriptionDto> prescription = prescriptions
                 .Select(p => new PrescriptionDto
                 {
                     Id = p.Id,
@@ -32,26 +41,29 @@ namespace Clinic_Management_System.Controllers
                     Instructions = p.Instructions,
                     PrescriptionDate = p.PrescriptionDate
 
-                }).ToListAsync();
+                }).ToList();
 
-            return View(pre);
+            return View(prescription);
         }
 
 
         // Create
         [HttpGet]
-        public IActionResult Create()
+        public async Task<IActionResult> Create()
         {
-            var patients = _db.Patients.ToList();
+
+            var patients = await _patientRepository.GetAllPatientsAsync();
 
             SelectList selectList = new SelectList(patients, "Id", "FirstName");
             ViewBag.Patients = selectList;
 
-            var doctors = _db.Doctors.ToList();
+
+
+            var doctors = await _doctorRepository.GetAllDoctorsAsync();
 
             SelectList selectListD = new SelectList(doctors, "Id", "FirstName");
-
             ViewBag.Doctors = selectListD;
+
             return View();
         }
 
@@ -73,16 +85,18 @@ namespace Clinic_Management_System.Controllers
                 };
 
 
-                _db.Prescriptions.Add(prescription);
-                await _db.SaveChangesAsync();
+              
+                await _prescriptionRepository.AddPrescriptionAsync(prescription);
+
                 return RedirectToAction(nameof(Index));
         }
 
-        ViewBag.Patients = new SelectList(
-            await _db.Patients.ToListAsync(), "Id", "FirstName");
+            ViewBag.Patients = new SelectList(
+                 await _patientRepository.GetAllPatientsAsync(), "Id", "FirstName");
 
-        ViewBag.Doctors = new SelectList(
-          await _db.Doctors.ToListAsync(), "Id", "FirstName");
+            ViewBag.Doctors = new SelectList(
+              await _doctorRepository.GetAllDoctorsAsync(), "Id", "FirstName");
+
             return View(prescriptionDto);
         }
 
@@ -95,7 +109,7 @@ namespace Clinic_Management_System.Controllers
             {
                 return NotFound();
             }
-            var pre = await _db.Prescriptions.FirstOrDefaultAsync(x => x.Uuid == uuid);
+            var pre = await _prescriptionRepository.GetPrescriptionByIdAsync(uuid);
 
             if (pre == null)
             {
@@ -115,11 +129,11 @@ namespace Clinic_Management_System.Controllers
             };
 
 
-            var Patients = await _db.Patients.ToListAsync();
+            var Patients = await _patientRepository.GetAllPatientsAsync();
             ViewBag.Patients = new SelectList(Patients, "Id", "FirstName");
 
 
-            var Doctors = await _db.Doctors.ToListAsync();
+            var Doctors = await _doctorRepository.GetAllDoctorsAsync();
             ViewBag.Doctors = new SelectList(Doctors, "Id", "FirstName");
 
             return View(prescriptionDto);
@@ -131,8 +145,8 @@ namespace Clinic_Management_System.Controllers
         {
             if (ModelState.IsValid)
             {
-                var prescription = await _db.Prescriptions
-                    .FirstOrDefaultAsync(x => x.Uuid == prescriptionDto.Uuid);
+                var prescription = await _prescriptionRepository.GetPrescriptionByIdAsync(prescriptionDto.Uuid);
+
 
                 if (prescription == null)
                 {
@@ -146,16 +160,16 @@ namespace Clinic_Management_System.Controllers
                 prescription.Instructions = prescriptionDto.Instructions;
                 prescription.PrescriptionDate = prescriptionDto.PrescriptionDate;
 
-                await _db.SaveChangesAsync();
+                await _prescriptionRepository.UpdatePrescriptionAsync(prescription);    
 
                 return RedirectToAction(nameof(Index));
             }
 
             ViewBag.Patients = new SelectList(
-                await _db.Patients.ToListAsync(), "Id", "FirstName");
+              await _patientRepository.GetAllPatientsAsync(), "Id", "FirstName");
 
             ViewBag.Doctors = new SelectList(
-                await _db.Doctors.ToListAsync(), "Id", "FirstName");
+              await _doctorRepository.GetAllDoctorsAsync(), "Id", "FirstName");
 
             return View(prescriptionDto);
         }
@@ -170,7 +184,7 @@ namespace Clinic_Management_System.Controllers
             {
                 return NotFound();
             }
-            var pre = await _db.Prescriptions.FirstOrDefaultAsync(x => x.Uuid == uuid);
+            var pre = await _prescriptionRepository.GetPrescriptionByIdAsync(uuid);
 
             if (pre == null)
             {
@@ -186,13 +200,14 @@ namespace Clinic_Management_System.Controllers
 
         public async Task<IActionResult> DeleteConfirm(string uuid)
         {
-            var pre = await _db.Prescriptions.FirstOrDefaultAsync(x => x.Uuid == uuid);
+            var pre = await _prescriptionRepository.GetPrescriptionByIdAsync(uuid);
 
-            if (pre != null)
+            if (pre == null)
             {
-                _db.Prescriptions.Remove(pre);
-                await _db.SaveChangesAsync();
+                return NotFound();
             }
+            await _prescriptionRepository.DeletePrescriptionAsync(uuid);
+
 
             return RedirectToAction(nameof(Index));
         }

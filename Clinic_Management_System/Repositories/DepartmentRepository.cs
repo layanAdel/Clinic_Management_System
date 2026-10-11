@@ -34,7 +34,11 @@ namespace Clinic_Management_System.Repositories
 
         public async Task<IEnumerable<Department>> GetAllDepartmentsAsync()
         {
-            IEnumerable<Department> departments = await _db.Departments.ToListAsync();
+            IEnumerable<Department> departments = await _db.Departments
+                   .Include(d => d.Doctors)
+                   .Include(d => d.Employees)
+                   .ToListAsync();
+            
             return departments;
         }
 
