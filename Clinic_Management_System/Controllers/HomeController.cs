@@ -1,4 +1,4 @@
-using Clinic_Management_System.Models;
+using Clinic_Management_System.Domain.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System.Diagnostics;

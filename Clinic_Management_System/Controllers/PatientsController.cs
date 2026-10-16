@@ -1,46 +1,27 @@
-﻿using Clinic_Management_System.Data;
-using Clinic_Management_System.Dtos;
-using Clinic_Management_System.Models;
-using Clinic_Management_System.Repositories;
+﻿using Clinic_Management_System.Application.Dtos;
+using Clinic_Management_System.Application.Services.Base;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
+
 
 namespace Clinic_Management_System.Controllers
 {
     [Authorize]
     public class PatientsController : Controller
     {
-        private readonly IPatientRepository _patientRepository;
-        public PatientsController(IPatientRepository patientRepository)
+        private readonly IPatientService _patientService;
+        public PatientsController(IPatientService patientService)
         {
-            _patientRepository = patientRepository;
+            _patientService = patientService;
+
         }
 
 
         public async Task<IActionResult> Index()
         {
-            var patients = await _patientRepository.GetAllPatientsAsync();
+            var patients = await _patientService.GetAllPatients();
 
-            IEnumerable<PatientDto> patient = patients
-               .Select(p => new PatientDto
-               {
-                   Id = p.Id,
-                   Uuid = p.Uuid,
-                   FirstName = p.FirstName,
-                   LastName = p.LastName,
-                   BirthDate = p.BirthDate,
-                   Gender = p.Gender,
-                   Phone = p.Phone,
-                   Email = p.Email,
-                   AppointmentId = p.Appointments != null ? p.Appointments.Count() : 0,
-                   MedicalRecordId = p.MedicalRecords != null ? p.MedicalRecords.Count() : 0,
-                   PrescriptionId = p.Prescriptions != null ? p.Prescriptions.Count() : 0,
-                   InvoiceId = p.Invoices != null ? p.Invoices.Count() : 0
-
-               }).ToList();
-
-            return View(patient);
+            return View(patients);
         }
         
 
@@ -49,31 +30,22 @@ namespace Clinic_Management_System.Controllers
         [HttpGet]
         public IActionResult Create()
         {
-            return View();
+            return View(new PatientCreateDto());
         }
 
         [HttpPost]
         [ValidateAntiForgeryToken]
 
-        public async Task<IActionResult> Create(PatientCreateDto patientDto)
+        public async Task<IActionResult> Create(PatientCreateDto patientDTO)
         {
 
             if (ModelState.IsValid)
             {
-                var patient = new Patient
-                {
-                    FirstName = patientDto.FirstName,
-                    LastName = patientDto.LastName,
-                    BirthDate = patientDto.BirthDate,
-                    Gender = patientDto.Gender,
-                    Phone = patientDto.Phone,
-                    Email = patientDto.Email
-                };
-                
-                await _patientRepository.AddPatientAsync(patient);
+                await _patientService.AddPatient(patientDTO);
+
                 return RedirectToAction(nameof(Index));
             }
-            return View(patientDto);
+            return View(patientDTO);
         }
 
 
@@ -86,53 +58,37 @@ namespace Clinic_Management_System.Controllers
                 return NotFound();
             }
 
-            var patient = await _patientRepository.GetPatientByIdAsync(uuid);
+            var patient = await _patientService.GetPatientById(uuid);
 
             if (patient == null)
             {
                 return NotFound();
             }
-            var patientDto = new PatientUpdateDto
-            {
-                Id = patient.Id,
-                Uuid = patient.Uuid,
-                FirstName = patient.FirstName,
-                LastName = patient.LastName,
-                BirthDate = patient.BirthDate,
-                Gender = patient.Gender,
-                Phone = patient.Phone,
-                Email = patient.Email
-            };
+          
 
-            return View(patientDto);
+            return View(patient);
         }
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(PatientUpdateDto patientDto)
+        public async Task<IActionResult> Edit(PatientUpdateDto patientDTO)
         {
             if (ModelState.IsValid)
             {
-                var patient = await _patientRepository.GetPatientByIdAsync(patientDto.Uuid);
+                var existingPatient = 
+                    await _patientService.GetPatientById(patientDTO.Uuid);
 
-                if (patient == null)
+                if (existingPatient == null)
                 {
                     return NotFound();
                 }
 
-                patient.FirstName = patientDto.FirstName;
-                patient.LastName = patientDto.LastName;
-                patient.BirthDate = patientDto.BirthDate;
-                patient.Gender = patientDto.Gender;
-                patient.Phone = patientDto.Phone;
-                patient.Email = patientDto.Email;
-
-                await _patientRepository.UpdatePatientAsync(patient);
+                 await _patientService.UpdatePatient(patientDTO);
 
                 return RedirectToAction(nameof(Index));
             }
 
-            return View(patientDto);
+            return View(patientDTO);
         }
 
 
@@ -145,7 +101,7 @@ namespace Clinic_Management_System.Controllers
             {
                 return NotFound();
             }
-            var patient = await _patientRepository.GetPatientByIdAsync(uuid);
+            var patient = await _patientService.GetPatientById(uuid);
 
             if (patient == null)
             {
@@ -161,15 +117,19 @@ namespace Clinic_Management_System.Controllers
 
         public async Task<IActionResult> DeleteConfirm(string uuid)
         {
-            var patient = await _patientRepository.GetPatientByIdAsync(uuid);
-
-            if (patient != null)
+            if (uuid == null)
             {
-
-                await _patientRepository.DeletePatientAsync(uuid);
+                return NotFound();
             }
 
-           
+            var patient = await _patientService.GetPatientById(uuid);
+
+            if (patient == null)
+            {
+                return NotFound();
+            }
+
+            await _patientService.DeletePatient(uuid);
 
             return RedirectToAction(nameof(Index));
         }

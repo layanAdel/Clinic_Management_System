@@ -1,103 +1,53 @@
-﻿using Clinic_Management_System.Data;
-using Clinic_Management_System.Dtos;
-using Clinic_Management_System.Models;
-using Clinic_Management_System.Repositories;
+﻿using Clinic_Management_System.Application.Dtos;
+using Clinic_Management_System.Application.Services.Base;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
-using Microsoft.EntityFrameworkCore;
 
 namespace Clinic_Management_System.Controllers
 {
     [Authorize]
     public class PrescriptionsController : Controller
     {
-        private readonly IPrescriptionRepository _prescriptionRepository;
-        private readonly IDoctorRepository _doctorRepository;
-        private readonly IPatientRepository _patientRepository;
-
-        public PrescriptionsController(IPrescriptionRepository prescriptionRepository,
-            IDoctorRepository doctorRepository,
-            IPatientRepository patientRepository)
+        private readonly IPrescriptionService _prescriptionService;
+        public PrescriptionsController(IPrescriptionService prescriptionService)
         {
-            _prescriptionRepository = prescriptionRepository;
-            _doctorRepository = doctorRepository;
-            _patientRepository = patientRepository;
+            _prescriptionService = prescriptionService;
+
         }
 
         public async Task<IActionResult> Index()
         {
-            var prescriptions = await _prescriptionRepository.GetAllPrescriptionsAsync();
+            var prescriptions = await _prescriptionService.GetAllPrescriptions();
 
-            IEnumerable<PrescriptionDto> prescription = prescriptions
-                .Select(p => new PrescriptionDto
-                {
-                    Id = p.Id,
-                    Uuid = p.Uuid,
-                    PatientName = p.Patient != null ? p.Patient.FirstName : null,
-                    DoctorName = p.Doctor != null ? p.Doctor.FirstName : null,
-                    Medication = p.Medication,
-                    Dosage = p.Dosage,
-                    Instructions = p.Instructions,
-                    PrescriptionDate = p.PrescriptionDate
-
-                }).ToList();
-
-            return View(prescription);
+            return View(prescriptions);
         }
-
+        
 
         // Create
         [HttpGet]
         public async Task<IActionResult> Create()
         {
 
-            var patients = await _patientRepository.GetAllPatientsAsync();
+            await LoadDoctorAndPatientsAsync();
 
-            SelectList selectList = new SelectList(patients, "Id", "FirstName");
-            ViewBag.Patients = selectList;
-
-
-
-            var doctors = await _doctorRepository.GetAllDoctorsAsync();
-
-            SelectList selectListD = new SelectList(doctors, "Id", "FirstName");
-            ViewBag.Doctors = selectListD;
-
-            return View();
+            return View(new PrescriptionCreateDto());
         }
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create(PrescriptionCreateDto prescriptionDto)
+        public async Task<IActionResult> Create(PrescriptionCreateDto prescriptionDTO)
         {
             if (ModelState.IsValid)
-            {
-
-                var prescription = new Prescription
-                {
-                    PatientId = prescriptionDto.PatientId,
-                    DoctorId = prescriptionDto.DoctorId,
-                    Medication = prescriptionDto.Medication,
-                    Dosage = prescriptionDto.Dosage,
-                    Instructions = prescriptionDto.Instructions,
-                    PrescriptionDate = prescriptionDto.PrescriptionDate
-                };
-
-
-              
-                await _prescriptionRepository.AddPrescriptionAsync(prescription);
+            {     
+                await _prescriptionService.AddPrescription(prescriptionDTO);
 
                 return RedirectToAction(nameof(Index));
         }
 
-            ViewBag.Patients = new SelectList(
-                 await _patientRepository.GetAllPatientsAsync(), "Id", "FirstName");
+            await LoadDoctorAndPatientsAsync();
 
-            ViewBag.Doctors = new SelectList(
-              await _doctorRepository.GetAllDoctorsAsync(), "Id", "FirstName");
-
-            return View(prescriptionDto);
+            return View(prescriptionDTO);
         }
 
 
@@ -109,69 +59,42 @@ namespace Clinic_Management_System.Controllers
             {
                 return NotFound();
             }
-            var pre = await _prescriptionRepository.GetPrescriptionByIdAsync(uuid);
+            var pre = await _prescriptionService.GetPrescriptionById(uuid);
 
             if (pre == null)
             {
                 return NotFound();
             }
 
-            var prescriptionDto = new PrescriptionUpdateDto
-            {
-                Id = pre.Id,
-                Uuid = pre.Uuid,
-                PatientId = pre.PatientId,
-                DoctorId = pre.DoctorId,
-                Medication = pre.Medication,
-                Dosage = pre.Dosage,
-                Instructions = pre.Instructions,
-                PrescriptionDate = pre.PrescriptionDate
-            };
+            await LoadDoctorAndPatientsAsync();
 
-
-            var Patients = await _patientRepository.GetAllPatientsAsync();
-            ViewBag.Patients = new SelectList(Patients, "Id", "FirstName");
-
-
-            var Doctors = await _doctorRepository.GetAllDoctorsAsync();
-            ViewBag.Doctors = new SelectList(Doctors, "Id", "FirstName");
-
-            return View(prescriptionDto);
+            return View(pre);
         }
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(PrescriptionUpdateDto prescriptionDto)
+        public async Task<IActionResult> Edit(PrescriptionUpdateDto prescriptionDTO)
         {
             if (ModelState.IsValid)
             {
-                var prescription = await _prescriptionRepository.GetPrescriptionByIdAsync(prescriptionDto.Uuid);
+                var existingPrescription = 
+                    await _prescriptionService.GetPrescriptionById(prescriptionDTO.Uuid);
 
 
-                if (prescription == null)
+                if (existingPrescription == null)
                 {
                     return NotFound();
                 }
 
-                prescription.PatientId = prescriptionDto.PatientId;
-                prescription.DoctorId = prescriptionDto.DoctorId;
-                prescription.Medication = prescriptionDto.Medication;
-                prescription.Dosage = prescriptionDto.Dosage;
-                prescription.Instructions = prescriptionDto.Instructions;
-                prescription.PrescriptionDate = prescriptionDto.PrescriptionDate;
-
-                await _prescriptionRepository.UpdatePrescriptionAsync(prescription);    
+               
+                await _prescriptionService.UpdatePrescription(prescriptionDTO);    
 
                 return RedirectToAction(nameof(Index));
             }
 
-            ViewBag.Patients = new SelectList(
-              await _patientRepository.GetAllPatientsAsync(), "Id", "FirstName");
+            await LoadDoctorAndPatientsAsync();
 
-            ViewBag.Doctors = new SelectList(
-              await _doctorRepository.GetAllDoctorsAsync(), "Id", "FirstName");
-
-            return View(prescriptionDto);
+            return View(prescriptionDTO);
         }
 
 
@@ -184,7 +107,7 @@ namespace Clinic_Management_System.Controllers
             {
                 return NotFound();
             }
-            var pre = await _prescriptionRepository.GetPrescriptionByIdAsync(uuid);
+            var pre = await _prescriptionService.GetPrescriptionById(uuid);
 
             if (pre == null)
             {
@@ -200,19 +123,41 @@ namespace Clinic_Management_System.Controllers
 
         public async Task<IActionResult> DeleteConfirm(string uuid)
         {
-            var pre = await _prescriptionRepository.GetPrescriptionByIdAsync(uuid);
+            if (uuid == null)
+            {
+                return NotFound();
+            }
+
+            var pre = await _prescriptionService.GetPrescriptionById(uuid);
 
             if (pre == null)
             {
                 return NotFound();
             }
-            await _prescriptionRepository.DeletePrescriptionAsync(uuid);
+            await _prescriptionService.DeletePrescription(uuid);
 
 
             return RedirectToAction(nameof(Index));
         }
-        
 
 
+        private async Task LoadDoctorAndPatientsAsync()
+        {
+            var doctors = await _prescriptionService.GetAllDoctors();
+
+            ViewBag.Doctors = new SelectList(
+                doctors,
+                "Id",
+                "FirstName"
+            );
+
+            var patients = await _prescriptionService.GetAllPatients();
+
+            ViewBag.Patients = new SelectList(
+                patients,
+                "Id",
+                "FirstName"
+             );
+        }
     }
 }

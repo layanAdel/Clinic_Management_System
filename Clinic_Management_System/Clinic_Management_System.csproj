@@ -16,4 +16,8 @@
     </PackageReference>
   </ItemGroup>
 
+  <ItemGroup>
+    <ProjectReference Include="..\Clinic_Management_System.Application\Clinic_Management_System.Application.csproj" />
+  </ItemGroup>
+
 </Project>

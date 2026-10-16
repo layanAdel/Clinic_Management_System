@@ -1,4 +1,4 @@
-﻿using Clinic_Management_System.Data;
+﻿using Clinic_Management_System.Infrastructure.Data;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Mvc;

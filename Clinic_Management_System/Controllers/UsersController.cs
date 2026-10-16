@@ -1,5 +1,5 @@
-﻿using Clinic_Management_System.Data;
-using Clinic_Management_System.Models;
+﻿using Clinic_Management_System.Infrastructure.Data;
+using Clinic_Management_System.Domain.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 

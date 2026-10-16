@@ -1,49 +1,30 @@
-﻿using Clinic_Management_System.Data;
-using Clinic_Management_System.Dtos;
-using Clinic_Management_System.Models;
-using Clinic_Management_System.Repositories;
+﻿using Clinic_Management_System.Application.Dtos;
+using Clinic_Management_System.Application.Services.Base;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
-using Microsoft.EntityFrameworkCore;
+
 
 namespace Clinic_Management_System.Controllers
 {
     [Authorize]
     public class MedicalRecordsController : Controller
     {
-       
-        private readonly IMedicalRecordRepository _medicalRecordRepository;
-        private readonly IDoctorRepository _doctorRepository;
-        private readonly IPatientRepository _patientRepository;
 
-        public MedicalRecordsController(IMedicalRecordRepository medicalRecordRepository,
-            IDoctorRepository doctorRepository,
-            IPatientRepository patientRepository)
+        private readonly IMedicalRecordService _medicalRecordService;
+        public MedicalRecordsController(IMedicalRecordService medicalRecordService)
         {
-            _medicalRecordRepository = medicalRecordRepository;
-            _doctorRepository = doctorRepository;
-            _patientRepository = patientRepository;
+            _medicalRecordService = medicalRecordService;
+
         }
+
 
         public async Task<IActionResult> Index()
         {
-            var medicalRecords = await _medicalRecordRepository.GetAllMedicalRecordsAsync();
+            var medicalRecords = await _medicalRecordService.GetAllMedicalRecords();
 
-            IEnumerable <MedicalRecordDto> medicalRecord = medicalRecords
-                .Select(a => new MedicalRecordDto
-            {
-                Id = a.Id,
-                Uuid = a.Uuid,
-                PatientName = a.Patient != null ? a.Patient.FirstName : null,
-                DoctorName = a.Doctor != null ? a.Doctor.FirstName : null,
-                VisitDate = a.VisitDate,
-                Diagnosis = a.Diagnosis,
-                Notes = a.Notes
-
-            }).ToList();
-
-            return View(medicalRecord);
+           
+            return View(medicalRecords);
         }
 
 
@@ -51,49 +32,25 @@ namespace Clinic_Management_System.Controllers
         [HttpGet]
         public async Task<IActionResult> Create()
         {
-
-            var patients = await _patientRepository.GetAllPatientsAsync();
-
-            SelectList selectList = new SelectList(patients, "Id", "FirstName");
-            ViewBag.Patients = selectList;
-
-
-
-            var doctors = await _doctorRepository.GetAllDoctorsAsync();
-
-            SelectList selectListD = new SelectList(doctors, "Id", "FirstName");
-            ViewBag.Doctors = selectListD;
-
-            return View();
+            await LoadDoctorAndPatientsAsync();
+           
+            return View(new MedicalRecordCreateDto());
         }
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create(MedicalRecordCreateDto medicalRecordDto)
+        public async Task<IActionResult> Create(MedicalRecordCreateDto medicalRecordDTO)
         {
             if (ModelState.IsValid)
             {
-                var medicalRecord = new MedicalRecord
-                {
-                    PatientId = medicalRecordDto.PatientId,
-                    DoctorId = medicalRecordDto.DoctorId,
-                    VisitDate = medicalRecordDto.VisitDate,
-                    Diagnosis = medicalRecordDto.Diagnosis,
-                    Notes = medicalRecordDto.Notes,
-                };
-
-                await _medicalRecordRepository.AddMedicalRecordAsync(medicalRecord);
+                await _medicalRecordService.AddMedicalRecord(medicalRecordDTO);
 
                 return RedirectToAction(nameof(Index));
             }
 
-            ViewBag.Patients = new SelectList(
-             await _patientRepository.GetAllPatientsAsync(), "Id", "FirstName");
+            await LoadDoctorAndPatientsAsync();
 
-            ViewBag.Doctors = new SelectList(
-              await _doctorRepository.GetAllDoctorsAsync(), "Id", "FirstName");
-
-            return View(medicalRecordDto);
+            return View(medicalRecordDTO);
         }
 
 
@@ -105,65 +62,41 @@ namespace Clinic_Management_System.Controllers
             {
                 return NotFound();
             }
-            var med =await _medicalRecordRepository.GetMedicalRecordByIdAsync(uuid);
+
+            var med = await _medicalRecordService.GetMedicalRecordById(uuid);
 
             if (med == null)
             {
                 return NotFound();
             }
 
-            var medicalRecordDto = new MedicalRecordUpdateDto
-            {
-                Id = med.Id,
-                Uuid = med.Uuid,
-                PatientId = med.PatientId,
-                DoctorId = med.DoctorId,
-                VisitDate = med.VisitDate,
-                Diagnosis = med.Diagnosis,
-                Notes = med.Notes,
-            };
+            await LoadDoctorAndPatientsAsync();
 
-            var Patients = await _patientRepository.GetAllPatientsAsync();
-            ViewBag.Patients = new SelectList(Patients, "Id", "FirstName");
-
-
-            var Doctors = await _doctorRepository.GetAllDoctorsAsync();
-            ViewBag.Doctors = new SelectList(Doctors, "Id", "FirstName");
-
-            return View(medicalRecordDto);
+            return View(med);
         }
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(MedicalRecordUpdateDto medicalRecordDto)
+        public async Task<IActionResult> Edit(MedicalRecordUpdateDto medicalRecordDTO)
         {
             if (ModelState.IsValid)
             {
-                var medicalRecord = await _medicalRecordRepository.GetMedicalRecordByIdAsync(medicalRecordDto.Uuid);
+                var existingMedicalRecord = 
+                    await _medicalRecordService.GetMedicalRecordById(medicalRecordDTO.Uuid);
 
-                if (medicalRecord == null)
+                if (existingMedicalRecord == null)
                 {
                     return NotFound();
                 }
 
-                medicalRecord.PatientId = medicalRecordDto.PatientId;
-                medicalRecord.DoctorId = medicalRecordDto.DoctorId;
-                medicalRecord.VisitDate = medicalRecordDto.VisitDate;
-                medicalRecord.Diagnosis = medicalRecordDto.Diagnosis;
-                medicalRecord.Notes = medicalRecordDto.Notes;
-
-                await _medicalRecordRepository.UpdateMedicalRecordAsync(medicalRecord);
+                await _medicalRecordService.UpdateMedicalRecord(medicalRecordDTO);
 
                 return RedirectToAction(nameof(Index));
             }
 
-            ViewBag.Patients = new SelectList(
-               await _patientRepository.GetAllPatientsAsync(), "Id", "FirstName");
+            await LoadDoctorAndPatientsAsync();
 
-            ViewBag.Doctors = new SelectList(
-              await _doctorRepository.GetAllDoctorsAsync(), "Id", "FirstName");
-
-            return View(medicalRecordDto);
+            return View(medicalRecordDTO);
         }
 
 
@@ -177,7 +110,7 @@ namespace Clinic_Management_System.Controllers
                 return NotFound();
             }
 
-            var med =await _medicalRecordRepository.GetMedicalRecordByIdAsync(uuid);
+            var med =await _medicalRecordService.GetMedicalRecordById(uuid);
 
             if (med == null)
             {
@@ -192,16 +125,42 @@ namespace Clinic_Management_System.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteConfirm(string uuid)
         {
-            var med = await _medicalRecordRepository.GetMedicalRecordByIdAsync(uuid);
-
-            if (med != null)
+            if (uuid == null)
             {
-               await _medicalRecordRepository.DeleteMedicalRecordAsync(uuid);
+                return NotFound();
             }
+
+            var med = await _medicalRecordService.GetMedicalRecordById(uuid);
+
+            if (med == null)
+            {
+                return NotFound();
+
+            }
+
+            await _medicalRecordService.DeleteMedicalRecord(uuid);
 
             return RedirectToAction(nameof(Index));
         }
-      
+
+        private async Task LoadDoctorAndPatientsAsync()
+        {
+            var doctors = await _medicalRecordService.GetAllDoctors();
+
+            ViewBag.Doctors = new SelectList(
+                doctors,
+                "Id",
+                "FirstName"
+            );
+
+            var patients = await _medicalRecordService.GetAllPatients();
+
+            ViewBag.Patients = new SelectList(
+                patients, 
+                "Id", 
+                "FirstName"
+             );
+        }
 
     }
 }

@@ -1,41 +1,27 @@
-﻿using Clinic_Management_System.Data;
-using Clinic_Management_System.Dtos;
-using Clinic_Management_System.Models;
-using Clinic_Management_System.Repositories;
+﻿using Clinic_Management_System.Application.Dtos;
+using Clinic_Management_System.Application.Services.Base;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
+
 
 namespace Clinic_Management_System.Controllers
 {
     [Authorize]
     public class DepartmentsController : Controller
     {
-       
-        private readonly IDepartmentRepository _departmentRepository;
-        public DepartmentsController(IDepartmentRepository departmentRepository)
-        {
-            _departmentRepository = departmentRepository;
-        }
 
+        private readonly IDepartmentService _departmentService;
+        public DepartmentsController(IDepartmentService departmentService)
+        {
+            _departmentService = departmentService;
+
+        }
 
         public async Task<IActionResult> Index()
         {
-            var departments = await _departmentRepository.GetAllDepartmentsAsync();
+            var departments = await _departmentService.GetAllDepartments();
 
-            IEnumerable<DepartmentDto> department = departments
-                .Select(d => new DepartmentDto
-                {
-                    Id = d.Id,
-                    Uuid = d.Uuid,
-                    Name = d.Name,
-                    Description = d.Description,
-                    DoctorId = d.Doctors != null ? d.Doctors.Count() : 0,
-                    EmployeeId = d.Employees != null ? d.Employees.Count() : 0
-
-                }).ToList();
-
-            return View(department);
+            return View(departments);
         }
 
 
@@ -44,27 +30,20 @@ namespace Clinic_Management_System.Controllers
         [HttpGet]
         public IActionResult Create()
         {
-            return View();
+            return View(new DepartmentCreateDto());
         }
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create(DepartmentCreateDto departmentDto)
+        public async Task<IActionResult> Create(DepartmentCreateDto departmentDTO)
         {
             if (ModelState.IsValid)
             {
-           
-                var department = new Department
-                {
-                    Name = departmentDto.Name,
-                    Description = departmentDto.Description
-                };
-
-                await _departmentRepository.AddDepartmentAsync(department);
+                await _departmentService.AddDepartment(departmentDTO);
                 
                 return RedirectToAction(nameof(Index));
             }
-            return View(departmentDto);
+            return View(departmentDTO);
         }
 
 
@@ -77,46 +56,35 @@ namespace Clinic_Management_System.Controllers
             {
                 return NotFound();
             }
-            var department = await _departmentRepository.GetDepartmentByIdAsync(uuid);
+            var department = await _departmentService.GetDepartmentById(uuid);
 
             if (department == null)
             {
                 return NotFound();
             }
-            var departmentDto = new DepartmentUpdateDto
-            {
 
-                Id = department.Id,
-                Uuid = department.Uuid,
-                Name = department.Name,
-                Description = department.Description
-            };
-
-            return View(departmentDto);
+            return View(department);
         }
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(DepartmentUpdateDto departmentDto)
+        public async Task<IActionResult> Edit(DepartmentUpdateDto departmentDTO)
         {
             if (ModelState.IsValid)
             {
                 
-                var department = await _departmentRepository.GetDepartmentByIdAsync(departmentDto.Uuid);
+                var existingDepartment =
+                    await _departmentService.GetDepartmentById(departmentDTO.Uuid);
 
-                if (department == null)
+                if (existingDepartment == null)
                 {
                     return NotFound();
                 }
 
-                department.Name = departmentDto.Name;
-                department.Description = departmentDto.Description;
-
-
-             await _departmentRepository.UpdateDepartmentAsync(department);
+             await _departmentService.UpdateDepartment(departmentDTO);
                 return RedirectToAction(nameof(Index));
             }
-            return View(departmentDto);
+            return View(departmentDTO);
         }
 
 
@@ -130,7 +98,7 @@ namespace Clinic_Management_System.Controllers
             {
                 return NotFound();
             }
-            var department = await _departmentRepository.GetDepartmentByIdAsync(uuid);
+            var department = await _departmentService.GetDepartmentById(uuid);
 
 
             if (department == null)
@@ -147,14 +115,20 @@ namespace Clinic_Management_System.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteConfirm(string uuid)
         {
-            var department = await _departmentRepository.GetDepartmentByIdAsync(uuid);
 
-            if (department != null)
+            if (uuid == null)
             {
-                await _departmentRepository.DeleteDepartmentAsync(uuid);
-                
-
+                return NotFound();
             }
+            var department = await _departmentService.GetDepartmentById(uuid);
+
+            if (department == null)
+            {
+                return NotFound();
+            }
+
+                await _departmentService.DeleteDepartment(uuid);
+             
             return RedirectToAction(nameof(Index));
         }
     }

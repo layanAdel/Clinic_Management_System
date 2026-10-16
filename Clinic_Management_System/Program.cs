@@ -1,7 +1,10 @@
 using Clinic_Management_System.Controllers;
-using Clinic_Management_System.Data;
-using Clinic_Management_System.Models;
-using Clinic_Management_System.Repositories;
+using Clinic_Management_System.Infrastructure.Data;
+using Clinic_Management_System.Domain.Models;
+using Clinic_Management_System.Infrastructure.Repositories;
+using Clinic_Management_System.Infrastructure.Repositories.Base;
+using Clinic_Management_System.Application.Services;
+using Clinic_Management_System.Application.Services.Base;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.EntityFrameworkCore;
 
@@ -32,6 +35,18 @@ builder.Services.AddScoped<IAppointmentRepository, AppointmentRepository>();
 builder.Services.AddScoped<IInvoiceRepository, InvoiceRepository>();
 builder.Services.AddScoped<IMedicalRecordRepository, MedicalRecordRepository>();
 builder.Services.AddScoped<IPrescriptionRepository, PrescriptionRepository>();
+
+builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
+
+builder.Services.AddScoped<IEmployeeService, EmployeeService>();
+builder.Services.AddScoped<IDoctorService, DoctorService>();
+builder.Services.AddScoped<IDepartmentService, DepartmentService>();
+builder.Services.AddScoped<IAppointmentService, AppointmentService>();
+builder.Services.AddScoped<IPatientService, PatientService>();
+builder.Services.AddScoped<IInvoiceService, InvoiceService>();
+builder.Services.AddScoped<IMedicalRecordService, MedicalRecordService>();
+builder.Services.AddScoped<IPrescriptionService, PrescriptionService>();
+
 
 
 

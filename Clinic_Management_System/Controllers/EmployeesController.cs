@@ -1,11 +1,8 @@
-﻿using Clinic_Management_System.Data;
-using Clinic_Management_System.Dtos;
-using Clinic_Management_System.Models;
-using Clinic_Management_System.Repositories;
+﻿using Clinic_Management_System.Application.Dtos;
+using Clinic_Management_System.Application.Services.Base;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
-using Microsoft.EntityFrameworkCore;
 
 
 namespace Clinic_Management_System.Controllers
@@ -14,36 +11,19 @@ namespace Clinic_Management_System.Controllers
     public class EmployeesController : Controller
     {
 
-        private readonly IEmployeeRepository _employeeRepository;
-        private readonly IDepartmentRepository _departmentRepository;
-        public EmployeesController(IEmployeeRepository employeeRepository,
-            IDepartmentRepository departmentRepository)
+        private readonly IEmployeeService _employeeService;
+        public EmployeesController(IEmployeeService employeeService)
         {
-            _employeeRepository = employeeRepository;
-            _departmentRepository = departmentRepository;
+            _employeeService = employeeService;
+
         }
+
 
         public async Task<IActionResult> Index()
         {
-            var employees = await _employeeRepository.GetAllEmployeesAsync();
+            var employees = await _employeeService.GetAllEmployees();
 
-            IEnumerable<EmployeeDto> employee = employees
-                .Select(e => new EmployeeDto
-                {
-                    Id = e.Id,
-                    Uuid = e.Uuid,
-                    FirstName = e.FirstName,
-                    LastName = e.LastName,
-                    Position = e.Position,
-                    Phone = e.Phone,
-                    Email = e.Email,
-                    HireDate = e.HireDate,
-                    Salary = e.Salary,
-                    DepartmentName = e.Department != null ? e.Department.Name : null
-
-                }).ToList();
-
-            return View(employee);
+            return View(employees);
         }
 
 
@@ -52,42 +32,25 @@ namespace Clinic_Management_System.Controllers
         [HttpGet]
         public async Task<IActionResult> Create()
         {
-            var departments = await _departmentRepository.GetAllDepartmentsAsync();
+            await LoadDepartmentsAsync();
 
-
-            SelectList selectList = new SelectList(departments, "Id", "Name");
-
-            ViewBag.Departments = selectList;
-
-            return View();
+            return View(new EmployeeCreateDto());
         }
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create(EmployeeCreateDto employeeDto)
+        public async Task<IActionResult> Create(EmployeeCreateDto employeeDTO)
         {
             if (ModelState.IsValid)
             {
-                var employee = new Employee
-                {
-                    FirstName = employeeDto.FirstName,
-                    LastName = employeeDto.LastName,
-                    Position = employeeDto.Position,
-                    Phone = employeeDto.Phone,
-                    Email = employeeDto.Email,
-                    HireDate = employeeDto.HireDate,
-                    Salary = employeeDto.Salary,
-                    DepartmentId = employeeDto.DepartmentId
-                };
+                await _employeeService.AddEmployee(employeeDTO);
 
-
-                await _employeeRepository.AddEmployeeAsync(employee);
                 return RedirectToAction(nameof(Index));
             }
-            ViewBag.Departments = new SelectList(
-                await _departmentRepository.GetAllDepartmentsAsync(), "Id", "Name");
 
-            return View(employeeDto);
+            await LoadDepartmentsAsync();
+
+            return View(employeeDTO);
         }
 
 
@@ -101,63 +64,39 @@ namespace Clinic_Management_System.Controllers
                 return NotFound();
             }
 
-            var emp = await _employeeRepository.GetEmployeeByIdAsync(uuid);
+            var emp = await _employeeService.GetEmployeeById(uuid);
 
             if (emp == null)
             {
                 return NotFound();
             }
-            var employeeDto = new EmployeeUpdateDto
-            {
-                Id = emp.Id,
-                Uuid = emp.Uuid,
-                FirstName = emp.FirstName,
-                LastName = emp.LastName,
-                Position = emp.Position,
-                Phone = emp.Phone,
-                Email = emp.Email,
-                HireDate = emp.HireDate,
-                Salary = emp.Salary,
-                DepartmentId = emp.DepartmentId
-            };
+            await LoadDepartmentsAsync();
 
-            var departments = await _departmentRepository.GetAllDepartmentsAsync();
-            ViewBag.Departments = new SelectList(departments, "Id", "Name");
 
-            return View(employeeDto);
+            return View(emp);
         }
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(EmployeeUpdateDto employeeDto)
+        public async Task<IActionResult> Edit(EmployeeUpdateDto employeeDTO)
         {
             if (ModelState.IsValid)
             {
-                var employee = await _employeeRepository.GetEmployeeByIdAsync(employeeDto.Uuid);
+                var existingEmployee =
+                   await _employeeService.GetEmployeeById(employeeDTO.Uuid);
 
-                if (employee == null)
+                if (existingEmployee == null)
                 {
                     return NotFound();
                 }
 
-                employee.FirstName = employeeDto.FirstName;
-                employee.LastName = employeeDto.LastName;
-                employee.Position = employeeDto.Position;
-                employee.Phone = employeeDto.Phone;
-                employee.Email = employeeDto.Email;
-                employee.HireDate = employeeDto.HireDate;
-                employee.Salary = employeeDto.Salary;
-                employee.DepartmentId = employeeDto.DepartmentId;
-
-                await _employeeRepository.UpdateEmployeeAsync(employee);
-
+                await _employeeService.UpdateEmployee(employeeDTO);
                 return RedirectToAction(nameof(Index));
             }
 
-            ViewBag.Departments = new SelectList(
-                await _departmentRepository.GetAllDepartmentsAsync(), "Id", "Name");
+            await LoadDepartmentsAsync();
 
-            return View(employeeDto);
+            return View(employeeDTO);
         }
 
 
@@ -171,7 +110,7 @@ namespace Clinic_Management_System.Controllers
             {
                 return NotFound();
             }
-            var emp = await _employeeRepository.GetEmployeeByIdAsync(uuid);
+            var emp = await _employeeService.GetEmployeeById(uuid);
 
 
             if (emp == null)
@@ -187,18 +126,37 @@ namespace Clinic_Management_System.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteConfirm(string uuid)
         {
-            var emp = await _employeeRepository.GetEmployeeByIdAsync(uuid);
-
-
-            if (emp != null)
+       
+            if (uuid == null)
             {
-                await _employeeRepository.DeleteEmployeeAsync(uuid);
+                return NotFound();
             }
 
+            var emp = await _employeeService.GetEmployeeById(uuid);
+
+            if (emp == null)
+            {
+                return NotFound();
+            }
+
+            await _employeeService.DeleteEmployee(uuid);
 
             return RedirectToAction(nameof(Index));
         }
 
-       
+        // LOAD DEPARTMENTS
+        private async Task LoadDepartmentsAsync()
+        {
+            var departments = await _employeeService.GetAllDepartments();
+
+            ViewBag.Departments = new SelectList(
+                departments,
+                "Id",
+                "Name"
+            );
+        }
+
+
+
     }
 }
