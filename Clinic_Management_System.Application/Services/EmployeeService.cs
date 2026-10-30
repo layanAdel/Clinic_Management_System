@@ -31,6 +31,7 @@ namespace Clinic_Management_System.Application.Services
                     Email = e.Email,
                     HireDate = e.HireDate,
                     Salary = e.Salary,
+                    CVimage = e.CVimage,
                     DepartmentName = e.Department != null ? e.Department.Name : null
 
                 });
@@ -49,6 +50,7 @@ namespace Clinic_Management_System.Application.Services
                 Email = employeeDTO.Email,
                 HireDate = employeeDTO.HireDate,
                 Salary = employeeDTO.Salary,
+                CVimage = employeeDTO.CVimage,
                 DepartmentId = employeeDTO.DepartmentId
             };
             await _unitOfWork.EmployeeRepository.AddEmployeeAsync(employee);

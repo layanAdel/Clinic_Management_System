@@ -26,6 +26,7 @@ namespace Clinic_Management_System.Infrastructure.Repositories.Base
             MedicalRecordRepository = new MedicalRecordRepository(_db);
 
             PrescriptionRepository = new PrescriptionRepository(_db);
+            UserRepository = new UserRepository(_db);
         }
 
         public IPatientRepository PatientRepository {  get; }
@@ -43,5 +44,6 @@ namespace Clinic_Management_System.Infrastructure.Repositories.Base
         public IMedicalRecordRepository MedicalRecordRepository { get; }
 
         public IPrescriptionRepository PrescriptionRepository { get; }
+        public IUserRepository UserRepository { get; }
     }
 }

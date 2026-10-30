@@ -27,6 +27,8 @@ namespace Clinic_Management_System.Application.Dtos
         public decimal Salary { get; set; } = 0;
 
         public string DepartmentName { get; set; } = string.Empty;
+        public string? CVimage { get; set; }
+
     }
 
     public class EmployeeCreateDto
@@ -50,7 +52,9 @@ namespace Clinic_Management_System.Application.Dtos
 
         public decimal Salary { get; set; } = 0;
 
-        public int DepartmentId { get; set; } 
+        public int DepartmentId { get; set; }
+
+        public string? CVimage { get; set; }
     }
 
     public class EmployeeUpdateDto : EmployeeCreateDto

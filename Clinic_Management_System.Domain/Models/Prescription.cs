@@ -19,6 +19,8 @@ namespace Clinic_Management_System.Domain.Models
         public int DoctorId { get; set; }
 
         public Doctor? Doctor { get; set; }
+        public string? PrescriptionImage { get; set; }
+
 
         [Required(ErrorMessage = "Medication is required")]
         public string Medication { get; set; }

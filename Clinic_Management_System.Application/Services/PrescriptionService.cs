@@ -28,6 +28,7 @@ namespace Clinic_Management_System.Application.Services
                     Medication = p.Medication,
                     Dosage = p.Dosage,
                     Instructions = p.Instructions,
+                    PrescriptionImage = p.PrescriptionImage,
                     PrescriptionDate = p.PrescriptionDate
 
                 });
@@ -41,6 +42,7 @@ namespace Clinic_Management_System.Application.Services
                 Medication = prescriptionDTO.Medication,
                 Dosage = prescriptionDTO.Dosage,
                 Instructions = prescriptionDTO.Instructions,
+                PrescriptionImage = prescriptionDTO.PrescriptionImage,
                 PrescriptionDate = prescriptionDTO.PrescriptionDate
             };
 

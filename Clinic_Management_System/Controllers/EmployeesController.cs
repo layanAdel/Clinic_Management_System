@@ -1,5 +1,6 @@
 ﻿using Clinic_Management_System.Application.Dtos;
 using Clinic_Management_System.Application.Services.Base;
+using Clinic_Management_System.Domain.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
@@ -39,10 +40,14 @@ namespace Clinic_Management_System.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create(EmployeeCreateDto employeeDTO)
+        public async Task<IActionResult> Create(EmployeeCreateDto employeeDTO, IFormFile? image)
         {
             if (ModelState.IsValid)
             {
+                if (image != null)
+                {
+                    employeeDTO.CVimage = UploadImage(image);
+                }
                 await _employeeService.AddEmployee(employeeDTO);
 
                 return RedirectToAction(nameof(Index));
@@ -51,6 +56,36 @@ namespace Clinic_Management_System.Controllers
             await LoadDepartmentsAsync();
 
             return View(employeeDTO);
+        }
+
+        private string UploadImage(IFormFile image)
+        {
+            string fileName = Guid.NewGuid().ToString()
+                              + Path.GetExtension(image.FileName);
+
+
+            string folderPath = Path.Combine(
+              Directory.GetCurrentDirectory(),
+              "wwwroot",
+              "images",
+              "employee"
+            );
+
+            Directory.CreateDirectory(folderPath);
+
+
+            string filePath = Path.Combine(
+          folderPath,
+          fileName);
+
+
+
+            using (var stream = new FileStream(filePath, FileMode.Create))
+            {
+                image.CopyTo(stream);
+            }
+
+            return "/images/employee/" + fileName;
         }
 
 

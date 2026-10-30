@@ -17,6 +17,7 @@
     <thead>
         <tr>
             <th>Id</th>
+            <th>Image</th>
             <th>Name</th>
             <th>Username</th>
             <th>Email</th>
@@ -31,6 +32,18 @@
         {
             <tr>
                 <td>@count</td>
+
+                <td>
+                    @if (!string.IsNullOrEmpty(user.ProfileImage))
+                    {
+                        <img src="@user.ProfileImage" alt="User Image" 
+                        style="max-width: 50px; max-height: 50px;" />
+                    }
+                    else
+                    {
+                        <span>No Image</span>
+                    }
+                    </td>
 
                 <td>@user.Name</td>
 

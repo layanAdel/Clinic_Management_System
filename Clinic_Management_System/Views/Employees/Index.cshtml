@@ -27,7 +27,8 @@
                 <th>HireDate</th>
                 <th>Salary</th>
                 <th>Department</th>
-                <th></th>
+                <th>CV</th>
+              
             </tr>
 
         </thead>
@@ -46,6 +47,17 @@
                     <td>@emp.HireDate</td>
                     <td>@emp.Salary</td>
                     <td>@emp.DepartmentName</td>
+                    <td>
+                        @if (!string.IsNullOrEmpty(emp.CVimage))
+                        {
+                            <img src="@emp.CVimage" alt="User Image"
+                                 style="max-width: 100px; max-height: 100px;" />
+                        }
+                        else
+                        {
+                            <span>No Image</span>
+                        }
+                    </td>
                     <td>
 
                         <a asp-action="Edit" asp-route-uuid="@emp.Uuid" class="btn btn-warning"> Edit </a>

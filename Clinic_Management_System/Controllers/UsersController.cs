@@ -43,10 +43,15 @@ namespace Clinic_Management_System.Controllers
         }
 
         [HttpPost]
-        public IActionResult Create(User user)
+        public IActionResult Create(User user, IFormFile? image)
         {
             if (ModelState.IsValid)
             {
+                if (image != null)
+                {
+                    user.ProfileImage = UploadImage(image);
+                }
+
                 user.Password = BCrypt.Net.BCrypt.HashPassword(user.Password);
 
                 _db.Users.Add(user);
@@ -56,6 +61,36 @@ namespace Clinic_Management_System.Controllers
             }
 
             return View(user);
+        }
+
+        private string UploadImage(IFormFile image)
+        {
+            string fileName = Guid.NewGuid().ToString()
+                              + Path.GetExtension(image.FileName);
+
+
+            string folderPath = Path.Combine(
+              Directory.GetCurrentDirectory(),
+              "wwwroot",
+              "images",
+              "users"
+            );
+
+            Directory.CreateDirectory(folderPath);
+
+
+            string filePath = Path.Combine(
+          folderPath,
+          fileName);
+
+
+
+            using (var stream = new FileStream(filePath, FileMode.Create))
+            {
+                image.CopyTo(stream);
+            }
+
+            return "/images/users/" + fileName;
         }
 
 
@@ -75,6 +110,7 @@ namespace Clinic_Management_System.Controllers
         {
             if (ModelState.IsValid)
             {
+               
                 var oldUser = _db.Users
                     .FirstOrDefault(x => x.Uuid == user.Uuid);
 

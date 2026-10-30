@@ -10,6 +10,7 @@
         IAppointmentRepository AppointmentRepository { get; }
         IMedicalRecordRepository MedicalRecordRepository { get; }
         IPrescriptionRepository PrescriptionRepository { get; }
+        IUserRepository UserRepository { get; }
 
     }
 }

@@ -11,6 +11,8 @@ namespace Clinic_Management_System.Domain.Models
         public int Id { get; set; }
         public string Uuid { get; set; } = Guid.NewGuid().ToString();
 
+        public string? CVimage { get; set; }
+
 
         [DisplayName("First Name")]
         [Required(ErrorMessage = "Name is required")]

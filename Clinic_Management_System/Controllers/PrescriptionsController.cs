@@ -1,5 +1,6 @@
 ﻿using Clinic_Management_System.Application.Dtos;
 using Clinic_Management_System.Application.Services.Base;
+using Clinic_Management_System.Domain.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
@@ -36,10 +37,15 @@ namespace Clinic_Management_System.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create(PrescriptionCreateDto prescriptionDTO)
+        public async Task<IActionResult> Create(PrescriptionCreateDto prescriptionDTO, IFormFile? image)
         {
             if (ModelState.IsValid)
-            {     
+            {
+                if (image != null)
+                {
+                    prescriptionDTO.PrescriptionImage = UploadImage(image);
+                }
+
                 await _prescriptionService.AddPrescription(prescriptionDTO);
 
                 return RedirectToAction(nameof(Index));
@@ -48,6 +54,36 @@ namespace Clinic_Management_System.Controllers
             await LoadDoctorAndPatientsAsync();
 
             return View(prescriptionDTO);
+        }
+
+        private string UploadImage(IFormFile image)
+        {
+            string fileName = Guid.NewGuid().ToString()
+                              + Path.GetExtension(image.FileName);
+
+
+            string folderPath = Path.Combine(
+              Directory.GetCurrentDirectory(),
+              "wwwroot",
+              "images",
+              "prescription"
+            );
+
+            Directory.CreateDirectory(folderPath);
+
+
+            string filePath = Path.Combine(
+          folderPath,
+          fileName);
+
+
+
+            using (var stream = new FileStream(filePath, FileMode.Create))
+            {
+                image.CopyTo(stream);
+            }
+
+            return "/images/prescription/" + fileName;
         }
 
 

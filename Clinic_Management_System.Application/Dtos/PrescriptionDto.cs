@@ -13,7 +13,7 @@ namespace Clinic_Management_System.Application.Dtos
 
         public string DoctorName { get; set; } = string.Empty;
 
-
+        public string? PrescriptionImage { get; set; }
         public string Medication { get; set; } = string.Empty;
 
         public string Dosage { get; set; } = string.Empty;
@@ -29,7 +29,7 @@ namespace Clinic_Management_System.Application.Dtos
         public int PatientId { get; set; }
         public int DoctorId { get; set; }
 
-
+        public string? PrescriptionImage { get; set; }
         public string Medication { get; set; } = string.Empty;
 
         public string Dosage { get; set; } = string.Empty;
