@@ -1,4 +1,5 @@
 ﻿using Clinic_Management_System.Application.Dtos;
+using Clinic_Management_System.Domain.Models;
 
 namespace Clinic_Management_System.Application.Services.Base
 {
@@ -10,6 +11,6 @@ namespace Clinic_Management_System.Application.Services.Base
         Task UpdateDoctor(DoctorUpdateDto doctorDTO);
         Task DeleteDoctor(string uuid);
         Task<IEnumerable<DepartmentDto>> GetAllDepartments();
-       
+
     }
 }

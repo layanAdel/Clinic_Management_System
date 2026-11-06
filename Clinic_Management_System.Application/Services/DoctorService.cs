@@ -1,7 +1,8 @@
 ﻿using Clinic_Management_System.Application.Dtos;
+using Clinic_Management_System.Application.Services.Base;
 using Clinic_Management_System.Domain.Models;
 using Clinic_Management_System.Infrastructure.Repositories.Base;
-using Clinic_Management_System.Application.Services.Base;
+using Microsoft.EntityFrameworkCore;
 
 namespace Clinic_Management_System.Application.Services
 {
@@ -115,5 +116,9 @@ namespace Clinic_Management_System.Application.Services
 
             await _unitOfWork.DoctorRepository.UpdateDoctorAsync(doctor);
         }
+
+    
+
+
     }
 }

@@ -10,6 +10,8 @@ namespace Clinic_Management_System.Infrastructure.Repositories
         Task UpdateDoctorAsync(Doctor doctor);
         Task DeleteDoctorAsync(string uuid);
 
+        IEnumerable<Doctor> GetAllDoctors();
+
     }
 }
 

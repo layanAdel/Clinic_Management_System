@@ -53,5 +53,10 @@ namespace Clinic_Management_System.Infrastructure.Repositories
             _db.Doctors.Update(doctor);
             return _db.SaveChangesAsync();
         }
+
+        public IEnumerable<Doctor> GetAllDoctors()
+        {
+            return _db.Doctors.Include(d => d.Department).ToList();
+        }
     }
 }
