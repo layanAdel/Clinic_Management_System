@@ -1,0 +1,175 @@
+﻿@model IEnumerable<Order>
+
+@{
+    ViewData["Title"] = "Orders Management";
+}
+
+<div class="container mt-4">
+
+    <h2 class="mb-4">Orders Management</h2>
+
+    <div class="card shadow-sm">
+        <div class="card-body">
+
+            <table class="table table-bordered table-hover align-middle">
+
+                <thead class="table-dark">
+                    <tr>
+                        <th>Order ID</th>
+                        <th>Patient ID</th>
+                        <th>Created At</th>
+                        <th>Status</th>
+                        <th>Appointments</th>
+                        <th>Update Status</th>
+                    </tr>
+                </thead>
+
+                <tbody>
+
+                    @foreach (var order in Model)
+                    {
+                        <tr>
+                            <td>@order.Id</td>
+
+                            <td>@order.PatientId</td>
+
+                            <td>
+                                @order.CreatedAt.ToString("yyyy-MM-dd HH:mm")
+                            </td>
+
+                            <td>
+                                @if (order.Status == "Pending")
+                                {
+                                    <span class="badge bg-warning text-dark">
+                                        Pending
+                                    </span>
+                                }
+                                else if (order.Status == "Confirmed")
+                                {
+                                    <span class="badge bg-primary">
+                                        Confirmed
+                                    </span>
+                                }
+                                else if (order.Status == "Completed")
+                                {
+                                    <span class="badge bg-success">
+                                        Completed
+                                    </span>
+                                }
+                                else if (order.Status == "Cancelled")
+                                {
+                                    <span class="badge bg-danger">
+                                        Cancelled
+                                    </span>
+                                }
+                            </td>
+
+                            <td>
+                                <button class="btn btn-outline-info btn-sm"
+                                        type="button"
+                                        data-bs-toggle="collapse"
+                                        data-bs-target="#order-@order.Id">
+
+                                    View Appointments
+                                </button>
+                            </td>
+
+                            <td>
+                                <form asp-controller="Orders"
+                                      asp-action="UpdateStatus"
+                                      method="post">
+
+                                    @Html.AntiForgeryToken()
+
+                                    <input type="hidden"
+                                           name="orderId"
+                                           value="@order.Id" />
+
+                                    <div class="d-flex gap-2">
+
+                                        <select name="Status"
+                                                class="form-select form-select-sm">
+
+                                            <option value="Pending"
+                                                    selected="@(order.Status == "Pending")">
+                                                Pending
+                                            </option>
+
+                                            <option value="Confirmed"
+                                                    selected="@(order.Status == "Confirmed")">
+                                                Confirmed
+                                            </option>
+
+                                            <option value="Completed"
+                                                    selected="@(order.Status == "Completed")">
+                                                Completed
+                                            </option>
+
+                                            <option value="Cancelled"
+                                                    selected="@(order.Status == "Cancelled")">
+                                                Cancelled
+                                            </option>
+
+                                        </select>
+
+                                        <button type="submit"
+                                                class="btn btn-success btn-sm">
+                                            Save
+                                        </button>
+
+                                    </div>
+                                </form>
+                            </td>
+                        </tr>
+
+                        <tr>
+                            <td colspan="6" class="p-0 border-0">
+
+                                <div class="collapse"
+                                     id="order-@order.Id">
+
+                                    <div class="p-3 bg-light">
+
+                                        <h6>Order #@order.Id Appointments</h6>
+
+                                        <table class="table table-sm table-bordered bg-white">
+
+                                            <thead>
+                                                <tr>
+                                                    <th>Appointment ID</th>
+                                                </tr>
+                                            </thead>
+
+                                            <tbody>
+                                                @foreach (var item in order.Items)
+                                                {
+                                                    <tr>
+                                                        <td>@item.AppointmentId</td>
+                                                    </tr>
+                                                }
+                                            </tbody>
+
+                                        </table>
+
+                                    </div>
+
+                                </div>
+
+                            </td>
+                        </tr>
+                    }
+
+                </tbody>
+
+            </table>
+
+            @if (!Model.Any())
+            {
+                <div class="alert alert-info text-center">
+                    No orders found.
+                </div>
+            }
+
+        </div>
+    </div>
+</div>

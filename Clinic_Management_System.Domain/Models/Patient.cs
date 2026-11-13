@@ -29,6 +29,11 @@ namespace Clinic_Management_System.Domain.Models
         [DisplayName("Patient Email")]
         public string Email { get; set; }
 
+
+        public int? UserId { get; set; }
+        public User? User { get; set; }
+
+
         public ICollection<Appointment>? Appointments { get; set; }
 
         public ICollection<MedicalRecord>? MedicalRecords { get; set; }

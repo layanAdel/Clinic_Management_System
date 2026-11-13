@@ -7,6 +7,7 @@ namespace Clinic_Management_System.Application.Dtos
     {
         public int Id { get; set; }
         public string Uuid { get; set; } = string.Empty;
+        public int? PatientId { get; set; }
         public string PatientName { get; set; } = string.Empty;
 
         public string DoctorName { get; set; } = string.Empty;
@@ -20,7 +21,8 @@ namespace Clinic_Management_System.Application.Dtos
 
     public class AppointmentCreateDto
     {
-        public int PatientId { get; set; } 
+        public int? PatientId { get; set; } 
+
 
         public int DoctorId { get; set; }
 

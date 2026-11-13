@@ -12,7 +12,7 @@ namespace Clinic_Management_System.Domain.Models
         public int Id { get; set; }
         public string Uuid { get; set; } = Guid.NewGuid().ToString();
 
-        public int PatientId { get; set; }
+        public int? PatientId { get; set; }
 
         public Patient? Patient { get; set; }
 

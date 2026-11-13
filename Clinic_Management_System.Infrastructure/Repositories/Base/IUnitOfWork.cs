@@ -12,5 +12,7 @@
         IPrescriptionRepository PrescriptionRepository { get; }
         IUserRepository UserRepository { get; }
 
+        public IOrderRepository OrderRepo { get; }
+
     }
 }

@@ -42,20 +42,29 @@ namespace Clinic_Management_System.API.Controllers
                 name = user.Name,
                 username = user.UserName,
                 email = user.Email,
+                patientId = user.Patient?.Id,
             });
         }
 
 
 
         [HttpPost("Register")]
-        public IActionResult Register([FromBody] RegisterDto registerDto)
+        public async Task<IActionResult> Register([FromBody] RegisterDto registerDto)
         {
-            var user = _userService.Register(registerDto);
+            var user = await _userService.Register(registerDto);
+
             if (user == null)
             {
                 return BadRequest(new { message = "Username or email already exists" });
             }
-            return Ok(new { message = "Registration successful", user });
+            return Ok(new
+            {
+                message = "Registration successful",
+                id = user.Id,
+                name = user.Name,
+                username = user.UserName,
+                email = user.Email
+            });
         }
 
         //[HttpGet("GetAllPatients")]

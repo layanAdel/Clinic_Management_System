@@ -1,4 +1,5 @@
-﻿using Clinic_Management_System.Application.Services.Base;
+﻿using Clinic_Management_System.Application.Dtos;
+using Clinic_Management_System.Application.Services.Base;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 
@@ -23,6 +24,7 @@ namespace Clinic_Management_System.API.Controllers
                 {
                     a.Id,
                     a.Uuid,
+                    a.PatientId,
                     a.PatientName,
                     a.DoctorName,
                     a.AppointmentDate,
@@ -32,5 +34,16 @@ namespace Clinic_Management_System.API.Controllers
 
             return Ok(appointments);
         }
+
+
+        [HttpPost]
+        public async Task<IActionResult> CreateAppointment(
+        [FromBody] AppointmentCreateDto appointmentDto)
+        {
+            await _appointmentService.AddAppointment(appointmentDto);
+
+            return Ok(new { message = "Appointment created successfully" });
+        }
+
     }
 }

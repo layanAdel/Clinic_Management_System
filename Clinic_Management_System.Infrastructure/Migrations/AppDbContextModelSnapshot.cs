@@ -36,7 +36,7 @@ namespace Clinic_Management_System.Infrastructure.Migrations
                     b.Property<int>("DoctorId")
                         .HasColumnType("int");
 
-                    b.Property<int>("PatientId")
+                    b.Property<int?>("PatientId")
                         .HasColumnType("int");
 
                     b.Property<string>("Reason")
@@ -61,6 +61,29 @@ namespace Clinic_Management_System.Infrastructure.Migrations
                         .IsUnique();
 
                     b.ToTable("Appointments");
+                });
+
+            modelBuilder.Entity("Clinic_Management_System.Domain.Models.Cart", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("AppointmentId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("PatientId")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("AppointmentId");
+
+                    b.HasIndex("PatientId");
+
+                    b.ToTable("Carts");
                 });
 
             modelBuilder.Entity("Clinic_Management_System.Domain.Models.Department", b =>
@@ -266,6 +289,91 @@ namespace Clinic_Management_System.Infrastructure.Migrations
                     b.ToTable("MedicalRecords");
                 });
 
+            modelBuilder.Entity("Clinic_Management_System.Domain.Models.Notification", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<bool>("IsRead")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("Message")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int?>("OrderId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("PatientId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Title")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("OrderId");
+
+                    b.HasIndex("PatientId");
+
+                    b.ToTable("Notifications");
+                });
+
+            modelBuilder.Entity("Clinic_Management_System.Domain.Models.Order", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int>("PatientId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("PatientId");
+
+                    b.ToTable("Orders");
+                });
+
+            modelBuilder.Entity("Clinic_Management_System.Domain.Models.OrderItem", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("AppointmentId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("OrderId")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("AppointmentId");
+
+                    b.HasIndex("OrderId");
+
+                    b.ToTable("OrderItems");
+                });
+
             modelBuilder.Entity("Clinic_Management_System.Domain.Models.Patient", b =>
                 {
                     b.Property<int>("Id")
@@ -297,11 +405,18 @@ namespace Clinic_Management_System.Infrastructure.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<int?>("UserId")
+                        .HasColumnType("int");
+
                     b.Property<string>("Uuid")
                         .IsRequired()
                         .HasColumnType("nvarchar(450)");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("UserId")
+                        .IsUnique()
+                        .HasFilter("[UserId] IS NOT NULL");
 
                     b.HasIndex("Uuid")
                         .IsUnique();
@@ -409,11 +524,28 @@ namespace Clinic_Management_System.Infrastructure.Migrations
 
                     b.HasOne("Clinic_Management_System.Domain.Models.Patient", "Patient")
                         .WithMany("Appointments")
+                        .HasForeignKey("PatientId");
+
+                    b.Navigation("Doctor");
+
+                    b.Navigation("Patient");
+                });
+
+            modelBuilder.Entity("Clinic_Management_System.Domain.Models.Cart", b =>
+                {
+                    b.HasOne("Clinic_Management_System.Domain.Models.Appointment", "Appointment")
+                        .WithMany()
+                        .HasForeignKey("AppointmentId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("Clinic_Management_System.Domain.Models.Patient", "Patient")
+                        .WithMany()
                         .HasForeignKey("PatientId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.Navigation("Doctor");
+                    b.Navigation("Appointment");
 
                     b.Navigation("Patient");
                 });
@@ -470,6 +602,62 @@ namespace Clinic_Management_System.Infrastructure.Migrations
                     b.Navigation("Patient");
                 });
 
+            modelBuilder.Entity("Clinic_Management_System.Domain.Models.Notification", b =>
+                {
+                    b.HasOne("Clinic_Management_System.Domain.Models.Order", "Order")
+                        .WithMany()
+                        .HasForeignKey("OrderId");
+
+                    b.HasOne("Clinic_Management_System.Domain.Models.Patient", "Patient")
+                        .WithMany()
+                        .HasForeignKey("PatientId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Order");
+
+                    b.Navigation("Patient");
+                });
+
+            modelBuilder.Entity("Clinic_Management_System.Domain.Models.Order", b =>
+                {
+                    b.HasOne("Clinic_Management_System.Domain.Models.Patient", "Patient")
+                        .WithMany()
+                        .HasForeignKey("PatientId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Patient");
+                });
+
+            modelBuilder.Entity("Clinic_Management_System.Domain.Models.OrderItem", b =>
+                {
+                    b.HasOne("Clinic_Management_System.Domain.Models.Appointment", "Appointment")
+                        .WithMany()
+                        .HasForeignKey("AppointmentId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("Clinic_Management_System.Domain.Models.Order", "Order")
+                        .WithMany("Items")
+                        .HasForeignKey("OrderId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Appointment");
+
+                    b.Navigation("Order");
+                });
+
+            modelBuilder.Entity("Clinic_Management_System.Domain.Models.Patient", b =>
+                {
+                    b.HasOne("Clinic_Management_System.Domain.Models.User", "User")
+                        .WithOne("Patient")
+                        .HasForeignKey("Clinic_Management_System.Domain.Models.Patient", "UserId");
+
+                    b.Navigation("User");
+                });
+
             modelBuilder.Entity("Clinic_Management_System.Domain.Models.Prescription", b =>
                 {
                     b.HasOne("Clinic_Management_System.Domain.Models.Doctor", "Doctor")
@@ -505,6 +693,11 @@ namespace Clinic_Management_System.Infrastructure.Migrations
                     b.Navigation("Prescriptions");
                 });
 
+            modelBuilder.Entity("Clinic_Management_System.Domain.Models.Order", b =>
+                {
+                    b.Navigation("Items");
+                });
+
             modelBuilder.Entity("Clinic_Management_System.Domain.Models.Patient", b =>
                 {
                     b.Navigation("Appointments");
@@ -514,6 +707,11 @@ namespace Clinic_Management_System.Infrastructure.Migrations
                     b.Navigation("MedicalRecords");
 
                     b.Navigation("Prescriptions");
+                });
+
+            modelBuilder.Entity("Clinic_Management_System.Domain.Models.User", b =>
+                {
+                    b.Navigation("Patient");
                 });
 #pragma warning restore 612, 618
         }

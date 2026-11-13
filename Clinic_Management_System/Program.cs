@@ -48,7 +48,7 @@ builder.Services.AddScoped<IInvoiceService, InvoiceService>();
 builder.Services.AddScoped<IMedicalRecordService, MedicalRecordService>();
 builder.Services.AddScoped<IPrescriptionService, PrescriptionService>();
 builder.Services.AddScoped<IUserService, UserService>();
-
+builder.Services.AddScoped<IOrderService, OrderService>();
 
 
 

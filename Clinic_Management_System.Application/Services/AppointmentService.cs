@@ -25,6 +25,7 @@ namespace Clinic_Management_System.Application.Services
                 {
                     Id = a.Id,
                     Uuid = a.Uuid,
+                    PatientId = a.PatientId,
                     PatientName = a.Patient != null ? a.Patient.FirstName : null,
                     DoctorName = a.Doctor != null ? a.Doctor.FirstName : null,
                     Status = a.Status,

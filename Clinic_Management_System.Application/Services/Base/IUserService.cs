@@ -12,6 +12,6 @@ namespace Clinic_Management_System.Application.Services.Base
     {
         User? Login(LoginDto loginDto);
 
-        User? Register(RegisterDto registerDto);
+        Task<User?> Register(RegisterDto registerDto);
     }
 }

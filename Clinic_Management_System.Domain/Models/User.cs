@@ -17,5 +17,8 @@ namespace Clinic_Management_System.Domain.Models
         public string Password { get; set; }
 
         public bool IsLocked { get; set; }
+
+        public Patient? Patient { get; set; }
+
     }
 }

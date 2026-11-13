@@ -20,6 +20,13 @@ namespace Clinic_Management_System.Infrastructure.Data
        public DbSet<Invoice> Invoices { get; set; }
         public DbSet<User> Users { get; set; }
 
+        public DbSet<Cart> Carts { get; set; }
+
+
+        public DbSet<Order> Orders { get; set; }
+        public DbSet<OrderItem> OrderItems { get; set; }
+        public DbSet<Notification> Notifications { get; set; }
+
 
 
     }

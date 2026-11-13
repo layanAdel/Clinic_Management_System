@@ -43,9 +43,17 @@
             <span class="text-danger" asp-validation-for="AppointmentDate"></span>
         </div>
 
+
         <div class="form-group">
             <label asp-for="Status" class="control-label"></label>
-            <input asp-for="Status" class="form-control" />
+
+            <select asp-for="Status" class="form-control">
+                <option value="Available">Available</option>
+                <option value="Booked">Booked</option>
+                <option value="Completed">Completed</option>
+                <option value="Cancelled">Cancelled</option>
+            </select>
+
             <span class="text-danger" asp-validation-for="Status"></span>
         </div>
         
