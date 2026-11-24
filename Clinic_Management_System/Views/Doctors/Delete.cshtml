@@ -1,0 +1,59 @@
+﻿@using Clinic_Management_System.Application.Dtos
+@model DoctorUpdateDto
+
+@{
+    ViewData["Title"] = "Delete Doctor";
+}
+
+
+<div class="container">
+    <h1>Delete Doctor</h1>
+    <form asp-action="Delete" method="post" asp-route-uuid="@Model.Uuid">
+
+       
+          
+        <div class="form-group">
+            <label asp-for="FirstName" class="control-label"></label>
+            <input asp-for="FirstName" class="form-control" readonly />
+        </div>
+
+        <div class="form-group">
+            <label asp-for="LastName" class="control-label"></label>
+            <input asp-for="LastName" class="form-control" readonly />
+        </div>
+
+
+        <div class="form-group">
+            <label asp-for="Specialization" class="control-label"></label>
+            <input asp-for="Specialization" class="form-control" readonly />
+        </div>
+
+        
+        <div class="form-group">
+            <label asp-for="Phone" class="control-label"></label>
+            <input asp-for="Phone" class="form-control" readonly />
+        </div>
+
+        
+        <div class="form-group">
+            <label asp-for="Email" class="control-label"></label>
+            <input asp-for="Email" class="form-control" readonly />
+        </div>
+
+        <div class="form-group">
+            <label asp-for="DepartmentId" class="control-label"></label>
+            <input asp-for="DepartmentId" class="form-control" readonly />
+        </div>
+
+
+      
+
+        <div class="form-group">
+            <input type="submit" value="Delete" class="btn btn-danger mt-3" />
+        </div>
+        <input type="hidden" asp-for="Uuid" />
+    <div>
+        <a asp-action="Index">Back to List</a>
+    </div>
+</form>
+</div>

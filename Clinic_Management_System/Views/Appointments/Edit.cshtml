@@ -1,0 +1,84 @@
+﻿@using Clinic_Management_System.Application.Dtos
+@model AppointmentUpdateDto
+@{
+    ViewData["Title"] = "Edit Appointment";
+
+}
+
+<div class="container">
+    <h1>Edit Appointments</h1>
+    <form asp-action="Edit" method="post" asp-route-Uuid="@Model.Uuid">
+        <input type="hidden" asp-for="Uuid" />
+
+        <div class="text-danger" asp-validation-summary="All">
+        </div>
+
+      
+        <div class="form-group">
+            <label asp-for="PatientId" class="control-label"></label>
+
+            <select asp-for="PatientId" class="form-control" asp-items="ViewBag.Patients">
+                <option value="">-- Select Patients --</option>
+            </select>
+
+            <span asp-validation-for="PatientId" class="text-danger"></span>
+        </div>
+
+
+        
+        <div class="form-group">
+            <label asp-for="DoctorId" class="control-label"></label>
+
+            <select asp-for="DoctorId" class="form-control" asp-items="ViewBag.Doctors">
+                <option value="">-- Select Doctor --</option>
+            </select>
+
+            <span asp-validation-for="DoctorId" class="text-danger"></span>
+        </div>
+
+        
+        <div class="form-group">
+            <label asp-for="AppointmentDate" class="control-label"></label>
+            <input asp-for="AppointmentDate" class="form-control" />
+            <span class="text-danger" asp-validation-for="AppointmentDate"></span>
+        </div>
+
+
+        <div class="form-group">
+            <label asp-for="Status" class="control-label"></label>
+
+            <select asp-for="Status" class="form-control">
+                <option value="Available">Available</option>
+                <option value="Booked">Booked</option>
+                <option value="Completed">Completed</option>
+                <option value="Cancelled">Cancelled</option>
+            </select>
+
+            <span class="text-danger" asp-validation-for="Status"></span>
+        </div>
+        
+
+        <div class="form-group">
+            <label asp-for="Reason" class="control-label"></label>
+            <input asp-for="Reason" class="form-control" />
+            <span class="text-danger" asp-validation-for="Reason"></span>
+        </div>
+
+
+
+        <div class="form-group">
+            <input type="submit" value="Update" class="btn btn-warning mt-3" />
+        </div>
+    </form>
+    <div>
+        <a asp-action="Index">Back to List</a>
+    </div>
+</div>
+
+
+
+@section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+}

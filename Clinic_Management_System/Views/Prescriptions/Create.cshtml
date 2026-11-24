@@ -1,0 +1,82 @@
+﻿@using Clinic_Management_System.Application.Dtos
+@model PrescriptionCreateDto
+@{
+    ViewData["Title"] = "Create Prescription";
+}
+
+<div class="container">
+    <h1>Create Prescriptions</h1>
+    <form asp-action="Create" method="post" enctype="multipart/form-data">
+
+        <div class="text-danger" asp-validation-summary="All">
+        </div>
+
+        <div class="form-group">
+            <label asp-for="PatientId" class="control-label">Patient Name</label>
+            <select asp-for="PatientId" class="form-control" asp-items="ViewBag.Patients">
+                <option value="">-- Select Patient --</option>
+
+                   
+            </select>
+            <span asp-validation-for="PatientId" class="text-danger"></span>
+        </div>
+
+        
+       
+        <div class="form-group">
+            <label asp-for="DoctorId" class="control-label">Doctor Name</label>
+            <select asp-for="DoctorId" class="form-control" asp-items="ViewBag.Doctors">
+                <option value="">-- Select Doctor --</option>
+
+                   
+            </select>
+            <span asp-validation-for="DoctorId" class="text-danger"></span>
+        </div>
+        
+        <div class="form-group">
+            <label asp-for="Medication" class="control-label"></label>
+            <input asp-for="Medication" class="form-control" />
+            <span class="text-danger" asp-validation-for="Medication"></span>
+        </div>
+
+        
+        <div class="form-group">
+            <label asp-for="Dosage" class="control-label"></label>
+            <input asp-for="Dosage" class="form-control" />
+            <span class="text-danger" asp-validation-for="Dosage"></span>
+        </div>
+
+        <div class="form-group">
+            <label asp-for="Instructions" class="control-label"></label>
+            <input asp-for="Instructions" class="form-control" />
+            <span class="text-danger" asp-validation-for="Instructions"></span>
+        </div>
+
+        <div class="form-group">
+            <label asp-for="PrescriptionDate" class="control-label"></label>
+            <input asp-for="PrescriptionDate" class="form-control" />
+            <span class="text-danger" asp-validation-for="PrescriptionDate"></span>
+        </div>
+
+        <div class="mb-3">
+            <label class="control-label">Prescription Image</label>
+            <input type="file" name="image" class="form-control" />
+
+        </div>
+  
+        <div class="form-group">
+            <input type="submit" value="Create" class="btn btn-primary mt-3" />
+        </div>
+
+    </form>
+    <div>
+        <a asp-action="Index">Back to List</a>
+    </div>
+
+</div>
+
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}
+
