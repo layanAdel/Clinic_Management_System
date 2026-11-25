@@ -34,9 +34,7 @@ namespace Clinic_Management_System.Infrastructure.Repositories
         {
             IEnumerable<Patient> patients = await _db.Patients
                    .Include(p => p.Appointments)
-                   .Include(p => p.MedicalRecords)
                    .Include(p => p.Prescriptions)
-                   .Include(p => p.Invoices)
                    .ToListAsync();
             return patients;
         }

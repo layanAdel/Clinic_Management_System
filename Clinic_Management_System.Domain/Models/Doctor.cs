@@ -34,8 +34,6 @@ namespace Clinic_Management_System.Domain.Models
 
         public ICollection<Appointment>? Appointments { get; set; }
 
-        public ICollection<MedicalRecord>? MedicalRecords { get; set; }
-
         public ICollection<Prescription>? Prescriptions { get; set; }
     }
 }

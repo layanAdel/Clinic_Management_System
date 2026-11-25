@@ -14,7 +14,6 @@ namespace Clinic_Management_System.Application.Dtos
         public string Email { get; set; } = string.Empty;
         public string? DepartmentName { get; set; }
         public int AppointmentId { get; set; }
-        public int MedicalRecordId { get; set; }
         public int PrescriptionId { get; set; }
 
     }

@@ -6,9 +6,7 @@
         IEmployeeRepository EmployeeRepository { get; }
         IDoctorRepository DoctorRepository { get; }
         IDepartmentRepository DepartmentRepository { get; }
-        IInvoiceRepository InvoiceRepository { get; }
         IAppointmentRepository AppointmentRepository { get; }
-        IMedicalRecordRepository MedicalRecordRepository { get; }
         IPrescriptionRepository PrescriptionRepository { get; }
         IUserRepository UserRepository { get; }
 

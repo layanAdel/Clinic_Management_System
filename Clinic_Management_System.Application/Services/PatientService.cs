@@ -29,9 +29,7 @@ namespace Clinic_Management_System.Application.Services
                    Phone = p.Phone,
                    Email = p.Email,
                    AppointmentId = p.Appointments != null ? p.Appointments.Count() : 0,
-                   MedicalRecordId = p.MedicalRecords != null ? p.MedicalRecords.Count() : 0,
                    PrescriptionId = p.Prescriptions != null ? p.Prescriptions.Count() : 0,
-                   InvoiceId = p.Invoices != null ? p.Invoices.Count() : 0
 
                });
         }

@@ -31,7 +31,6 @@ namespace Clinic_Management_System.Application.Services
                     Email = d.Email,
                     DepartmentName = d.Department != null ? d.Department.Name : null,
                     AppointmentId = d.Appointments != null ? d.Appointments.Count() : 0,
-                    MedicalRecordId = d.MedicalRecords != null ? d.MedicalRecords.Count() : 0,
                     PrescriptionId = d.Prescriptions != null ? d.Prescriptions.Count() : 0
 
                 });

@@ -19,11 +19,7 @@ namespace Clinic_Management_System.Infrastructure.Repositories.Base
 
             DepartmentRepository = new DepartmentRepository(_db);
 
-            InvoiceRepository = new InvoiceRepository(_db);
-
             AppointmentRepository = new AppointmentRepository(_db);
-
-            MedicalRecordRepository = new MedicalRecordRepository(_db);
 
             PrescriptionRepository = new PrescriptionRepository(_db);
 
@@ -41,11 +37,7 @@ namespace Clinic_Management_System.Infrastructure.Repositories.Base
 
         public IDepartmentRepository DepartmentRepository { get; }
 
-        public IInvoiceRepository InvoiceRepository { get; }
-
         public IAppointmentRepository AppointmentRepository { get; }
-
-        public IMedicalRecordRepository MedicalRecordRepository { get; }
 
         public IPrescriptionRepository PrescriptionRepository { get; }
         public IUserRepository UserRepository { get; }

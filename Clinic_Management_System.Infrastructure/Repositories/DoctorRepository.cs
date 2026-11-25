@@ -35,7 +35,6 @@ namespace Clinic_Management_System.Infrastructure.Repositories
             IEnumerable<Doctor> doctors = await _db.Doctors
                    .Include(d => d.Department)
                    .Include(d => d.Appointments)
-                   .Include(d => d.MedicalRecords)
                    .Include(d => d.Prescriptions)
                    .ToListAsync();
             

@@ -15,9 +15,7 @@ namespace Clinic_Management_System.Application.Dtos
         public string Phone { get; set; } = string.Empty;
         public string Email { get; set; } = string.Empty;
         public int AppointmentId { get; set; }
-        public int MedicalRecordId { get; set; }
         public int PrescriptionId { get; set; }
-        public int InvoiceId { get; set; }
     }
 
     public class PatientCreateDto
